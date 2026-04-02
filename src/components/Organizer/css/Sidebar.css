@@ -1,0 +1,83 @@
+.org-sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #2a3d7d 0%, #25a4c5 100%);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 24px;
+}
+
+.org-sidebar-logo {
+  padding: 32px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
+}
+
+.org-sidebar-logo h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.org-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.org-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.org-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.org-nav-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 600;
+  border-left: 4px solid #fff;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.org-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.org-sidebar-bottom {
+  padding: 0 16px;
+  margin-top: auto;
+}
+
+.org-nav-item.org-logout {
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 24px;
+}
+
+.org-nav-item.org-logout:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}

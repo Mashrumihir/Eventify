@@ -1,0 +1,226 @@
+.rr-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.rr-btn-write {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #258ac1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.rr-btn-write:hover {
+  background-color: #1d6e9a;
+}
+
+/* Stat Cards */
+.rr-stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.rr-stat-card {
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* Backgrounds and Borders */
+.rr-bg-light-yellow { background-color: #fffbeb; border-color: #fef3c7; }
+.rr-bg-light-green { background-color: #f0fdf4; border-color: #dcfce7; }
+.rr-bg-light-orange { background-color: #fff7ed; border-color: #ffedd5; }
+.rr-bg-light-red { background-color: #fef2f2; border-color: #fee2e2; }
+
+/* Text colors for labels/status */
+.rr-text-yellow { color: #64748b; } /* In mockup Total Reviews text is just grey/dark */
+.rr-text-green { color: #16a34a; }
+.rr-text-orange { color: #ea580c; }
+.rr-text-red { color: #dc2626; }
+
+.rr-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.rr-stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #64748b;
+}
+
+.rr-stat-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.rr-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rr-icon-bg-yellow { background-color: #fef08a; color: #ca8a04; }
+.rr-icon-bg-green { background-color: #dcfce7; color: #16a34a; }
+.rr-icon-bg-orange { background-color: #ffedd5; color: #ea580c; }
+.rr-icon-bg-red { background-color: #fee2e2; color: #dc2626; }
+
+/* Reviews List */
+.rr-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rr-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  border: 1px solid #f1f5f9;
+}
+
+.rr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.rr-card-main {
+  flex: 1;
+}
+
+.rr-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.rr-user-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.rr-event-name {
+  display: block;
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.rr-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rr-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rr-time {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.rr-status {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.rr-review-text {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* Action Buttons */
+.rr-action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.rr-btn-secondary {
+  padding: 6px 16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rr-btn-secondary:hover {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+.rr-btn-success {
+  padding: 6px 16px;
+  background: #dcfce7;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #16a34a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rr-btn-danger {
+  padding: 6px 16px;
+  background: #fee2e2;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rr-btn-danger-light {
+  padding: 6px 16px;
+  background: #fef2f2;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #ef4444;
+  font-weight: 500;
+  cursor: pointer;
+}

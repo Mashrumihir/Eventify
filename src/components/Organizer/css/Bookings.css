@@ -1,0 +1,215 @@
+/* Layout and Header Sharing */
+.manage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bk-header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.bk-btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bk-btn-outline:hover {
+  background: #f8fafc;
+}
+
+.bk-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  border: none;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bk-btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* Table Container */
+.bk-table-container {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search Area */
+.bk-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.bk-search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: transparent;
+}
+
+/* Table Area */
+.bk-table-overflow {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bk-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.bk-table th {
+  text-align: left;
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.bk-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+/* Cell specifics */
+.bk-id-cell {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.bk-attendee {
+  display: flex;
+  flex-direction: column;
+}
+
+.bk-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.bk-email {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.bk-cell-main {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.bk-amount-cell {
+  font-size: 14px;
+  font-weight: 700;
+  color: #16a34a; /* Green */
+}
+
+/* Pills */
+.bk-pill-type {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.t-vip { background: #e0e7ff; color: #4338ca; } /* Indigo */
+.t-standard { background: #f3f4f6; color: #4b5563; } /* Gray */
+.t-premium { background: #fae8ff; color: #a21caf; } /* Fuchsia */
+.t-free { background: #f1f5f9; color: #94a3b8; } /* Slate */
+.t-early-bird { background: #e0e7ff; color: #4338ca; }
+
+.bk-status-pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+.s-confirmed { background: #22c55e; } /* Green */
+.s-pending { background: #eab308; } /* Yellow */
+.s-cancelled { background: #ef4444; } /* Red */
+
+/* Actions inside table */
+.bk-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #3b82f6; /* Blue */
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.bk-action-btn:hover {
+  text-decoration: underline;
+}
+
+/* Footer Pagination */
+.bk-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.bk-showing {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.bk-pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.bk-pagination button {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.bk-pagination button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

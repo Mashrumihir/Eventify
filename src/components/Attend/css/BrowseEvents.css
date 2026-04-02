@@ -1,0 +1,285 @@
+.browse-events {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.be-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+.be-subtitle {
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Search + Filter Row ──────────────────────────────────────────────────── */
+.be-search-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.be-search-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.be-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.be-search-input {
+  width: 100%;
+  padding: 11px 16px 11px 42px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.be-search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.be-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.be-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s, border-color 0.18s;
+}
+
+.be-filter-btn:hover {
+  background: var(--color-border-light);
+  border-color: #d1d5db;
+}
+
+/* ── Category Pills ───────────────────────────────────────────────────────── */
+.be-categories {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.be-cat-pill {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.be-cat-pill:hover:not(.active) {
+  border-color: #93c5fd;
+  color: var(--color-primary);
+  background: #eff6ff;
+}
+
+.be-cat-pill.active {
+  background: var(--color-primary-gradient);
+  border-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ── Events Grid ──────────────────────────────────────────────────────────── */
+.be-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+/* ── Event Card ───────────────────────────────────────────────────────────── */
+.be-card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.be-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
+/* Card Image */
+.be-card-img-wrap {
+  position: relative;
+  height: 175px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.be-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.be-card:hover .be-card-img {
+  transform: scale(1.04);
+}
+
+.be-card-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.52);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.be-card-heart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-white);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease;
+}
+
+.be-card-heart:hover {
+  transform: scale(1.15);
+}
+
+.be-card-heart.wishlisted {
+  background: #fff;
+}
+
+/* Card Body */
+.be-card-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.be-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.35;
+}
+
+.be-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.be-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+}
+
+.be-rating-val {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+}
+
+.be-reviews {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* Card Footer */
+.be-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.be-price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
+}
+
+.be-price--free {
+  color: var(--color-green-icon);
+}
+
+.be-view-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-gradient);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.be-view-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+/* Empty State */
+.be-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}

@@ -1,0 +1,246 @@
+.ps-layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding-top: 16px;
+}
+
+.ps-card {
+  background: var(--color-white);
+  border-radius: 20px;
+  max-width: 700px;
+  width: 100%;
+  padding: 40px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid var(--color-border-light);
+}
+
+/* ── Header ── */
+.ps-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.ps-check-icon {
+  width: 64px;
+  height: 64px;
+  background: #10b981; /* Green */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.ps-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.ps-subtitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0 0 12px 0;
+}
+
+.ps-booking-id {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.ps-booking-id a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ps-booking-id a:hover {
+  text-decoration: underline;
+}
+
+/* ── Event Box ── */
+.ps-event-box {
+  background: #eff6ff; /* light blue */
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  gap: 32px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.ps-event-img-wrap {
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: #fff;
+  padding: 8px;
+}
+
+.ps-event-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.ps-event-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ps-event-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.ps-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ps-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ── Total Box ── */
+.ps-total-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px 24px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.ps-total-label {
+  font-size: 16px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.ps-total-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+/* ── Actions ── */
+.ps-actions {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.ps-btn-primary,
+.ps-btn-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ps-btn-primary {
+  background: #38bdf8;
+  background: linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.ps-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.ps-btn-outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid #bfdbfe;
+}
+
+.ps-btn-outline:hover {
+  background: #eff6ff;
+}
+
+/* ── Nav Links ── */
+.ps-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ps-nav-links button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ps-nav-links button:hover {
+  text-decoration: underline;
+}
+
+.ps-nav-sep {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+/* ── Email Notice ── */
+.ps-email-notice {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.ps-email-notice p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}

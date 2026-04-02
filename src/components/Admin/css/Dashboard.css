@@ -1,0 +1,212 @@
+.admin-page-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f1f5f9;
+}
+
+.admin-welcome-header {
+  background: #fff;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.admin-welcome-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.admin-welcome-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.admin-content-area {
+  padding: 32px;
+  flex: 1;
+}
+
+.admin-section-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.5px;
+}
+
+.admin-section-subtitle {
+  margin: 0 0 32px 0;
+  font-size: 15px;
+  color: #64748b;
+}
+
+/* Stats Row */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.admin-stat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-stat-info h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.admin-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.admin-stat-trend {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-stat-trend.positive {
+  color: #10b981;
+}
+
+.admin-stat-trend.negative {
+  color: #ef4444;
+}
+
+.admin-stat-trend .trend-text {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.admin-stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+
+/* Pending Approvals Card */
+.admin-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.admin-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.info-icon {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+.admin-approval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-approval-item {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s;
+}
+
+.admin-approval-item:hover {
+  background: #f1f5f9;
+}
+
+.admin-approval-info h4 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.admin-approval-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.admin-approval-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.admin-btn-approve {
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-width: 80px;
+}
+
+.admin-btn-approve:hover {
+  background: #0284c7;
+}
+
+.admin-btn-reject {
+  background: #fff;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.admin-btn-reject:hover {
+  background: #fef2f2;
+}
