@@ -127,3 +127,46 @@
 .login-btn:active {
   transform: translateY(1px);
 }
+
+.hero-surface {
+  background: radial-gradient(circle at 15% 10%, rgba(34, 211, 238, 0.18), transparent 25%),
+    radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.16), transparent 18%),
+    linear-gradient(135deg, #05122d 0%, #0b305a 46%, #091833 100%);
+}
+
+.hero-art {
+  background: rgba(59, 130, 246, 0.16);
+  box-shadow: 0 0 120px rgba(14, 116, 144, 0.28);
+}
+
+.hero-photo-shell {
+  min-height: 420px;
+}
+
+.hero-photo {
+  transition: transform 0.4s ease;
+}
+
+.hero-photo-shell:hover .hero-photo {
+  transform: scale(1.02);
+}
+
+.stats-overlap {
+  margin-top: -4.5rem;
+  padding-bottom: 3rem;
+}
+
+.newsletter-glow {
+  background: radial-gradient(circle at top center, rgba(59, 130, 246, 0.18), transparent 20%),
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+}
+
+@media (max-width: 768px) {
+  .hero-photo-shell {
+    min-height: auto;
+  }
+
+  .stats-overlap {
+    margin-top: 0;
+  }
+}
