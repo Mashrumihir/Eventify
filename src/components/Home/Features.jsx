@@ -13,75 +13,63 @@ const features = [
     id: 1,
     title: "Instant Booking",
     desc: "Book your favorite events instantly with just a few clicks.",
-    icon: <FiZap className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-blue-100 text-blue-700",
+    icon: <FiZap aria-hidden="true" />,
+    tint: { background: "#edf4ff", color: "#2563eb" },
   },
   {
     id: 2,
     title: "Secure Payments",
-    desc: "Your payments are protected with trusted encrypted gateways.",
-    icon: <FiLock className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-emerald-100 text-emerald-700",
+    desc: "Your payments are protected with bank-level security.",
+    icon: <FiLock aria-hidden="true" />,
+    tint: { background: "#edfdf1", color: "#16a34a" },
   },
   {
     id: 3,
     title: "Digital Tickets",
-    desc: "Access your tickets anytime from your mobile or desktop.",
-    icon: <FiCheckSquare className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-violet-100 text-violet-700",
+    desc: "Access your tickets anytime, anywhere on your mobile device.",
+    icon: <FiCheckSquare aria-hidden="true" />,
+    tint: { background: "#f4ecff", color: "#9333ea" },
   },
   {
     id: 4,
     title: "Event Reminders",
-    desc: "Stay updated with smart reminders and event alerts.",
-    icon: <FiBell className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-orange-100 text-orange-700",
+    desc: "Never miss an event with smart notifications and reminders.",
+    icon: <FiBell aria-hidden="true" />,
+    tint: { background: "#fff3e8", color: "#ea580c" },
   },
   {
     id: 5,
     title: "Wishlist Events",
-    desc: "Save interesting events and get notified about updates.",
-    icon: <FiHeart className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-pink-100 text-pink-700",
+    desc: "Save events you love and get notified when tickets are available.",
+    icon: <FiHeart aria-hidden="true" />,
+    tint: { background: "#ffedf6", color: "#db2777" },
   },
   {
     id: 6,
     title: "Trending Events",
-    desc: "Explore top-rated and most popular events near you.",
-    icon: <FiTrendingUp className="h-4 w-4" aria-hidden="true" />,
-    tint: "bg-indigo-100 text-indigo-700",
+    desc: "Discover what's popular and trending in your area.",
+    icon: <FiTrendingUp aria-hidden="true" />,
+    tint: { background: "#e8fffb", color: "#0f9f96" },
   },
 ];
 
 const Features = () => {
   return (
-    <section className="bg-slate-100 py-16">
-      <Container>
-        <header className="mx-auto mb-10 max-w-2xl text-center">
-          <h2 className="text-3xl font-extrabold text-slate-900">
-            Why Choose Eventify?
-          </h2>
-          <p className="mt-3 text-sm text-slate-500">
-            Experience the future of event booking with our practical and
-            powerful feature set.
-          </p>
+    <section className="section-block">
+      <Container className="landing-shell">
+        <header className="section-heading">
+          <h2>Why Choose Eventify?</h2>
+          <p>Experience the future of event booking with our cutting edge features</p>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="features-grid">
           {features.map((feature) => (
-            <article
-              key={feature.id}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <span
-                className={`mb-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold ${feature.tint}`}
-              >
+            <article key={feature.id} className="feature-card">
+              <span className="feature-card__icon" style={feature.tint}>
                 {feature.icon}
               </span>
-              <h3 className="text-lg font-semibold text-slate-900">
-                {feature.title}
-              </h3>
-              <p className="mt-2 text-sm text-slate-500">{feature.desc}</p>
+              <h3>{feature.title}</h3>
+              <p>{feature.desc}</p>
             </article>
           ))}
         </div>

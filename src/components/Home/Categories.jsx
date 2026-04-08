@@ -26,46 +26,27 @@ const iconMap = {
 
 const Categories = () => {
   return (
-    <section className="bg-slate-100 py-16">
-      <Container>
-        <header className="mx-auto mb-10 max-w-2xl text-center">
-          <h2 className="text-3xl font-extrabold text-slate-900">
-            Browse by Category
-          </h2>
-          <p className="mt-3 text-sm text-slate-500">
-            Find the perfect event that matches your interests.
-          </p>
+    <section className="section-block">
+      <Container className="landing-shell">
+        <header className="section-heading">
+          <h2>Browse by Category</h2>
+          <p>Find the perfect event that matches your interests</p>
         </header>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
-            <article
-              key={category.id}
-              className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              {(() => {
-                const Icon = iconMap[category.icon];
-                return (
-                  <span
-                    className={`mx-auto mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg ${category.tint}`}
-                  >
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                );
-              })()}
-              <span
-                className="sr-only"
-              >
-                {category.name}
-              </span>
-              <h3 className="text-lg font-semibold text-slate-900">
-                {category.name}
-              </h3>
-              <p className="mt-1 text-sm text-slate-500">
-                {category.count} events
-              </p>
-            </article>
-          ))}
+        <div className="category-grid">
+          {categories.map((category) => {
+            const Icon = iconMap[category.icon];
+
+            return (
+              <article key={category.id} className="category-card">
+                <span className="category-card__icon" style={category.tint}>
+                  <Icon aria-hidden="true" />
+                </span>
+                <h3>{category.name}</h3>
+                <p>{category.count} events</p>
+              </article>
+            );
+          })}
         </div>
       </Container>
     </section>
