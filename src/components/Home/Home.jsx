@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Container from "../layout/Container";
 import Hero from "./Hero";
 import Stats from "./Stats";
@@ -9,8 +10,49 @@ import { FiMail, FiMapPin, FiPhone } from "react-icons/fi";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
 import "./Home.css";
 
-const Home = ({ onNavigateToLogin, onNavigateToRegister, onNavigateToApp }) => {
+const NAV_ITEMS = [
+  { id: "home", label: "Home" },
+  { id: "events", label: "Events" },
+  { id: "categories", label: "Categories" },
+  { id: "about", label: "About" },
+  { id: "contact", label: "Contact" },
+];
+
+const Home = ({ onNavigateToLogin, onNavigateToRegister, onNavigateToApp, onNavigateToContact, onNavigateToAbout, onNavigateToPartnerEvents, onNavigateToFaq, onNavigateToPricing, onNavigateToPrivacyPolicy, onNavigateToTermsOfService }) => {
+  const [activeSection, setActiveSection] = useState("home");
+
+  useEffect(() => {
+    const sections = NAV_ITEMS
+      .map(({ id }) => document.getElementById(id))
+      .filter(Boolean);
+
+    if (!sections.length) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSection = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visibleSection?.target?.id) {
+          setActiveSection(visibleSection.target.id);
+        }
+      },
+      {
+        rootMargin: "-35% 0px -45% 0px",
+        threshold: [0.2, 0.4, 0.65],
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
+
   const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
     const section = document.getElementById(sectionId);
     if (section) {
       section.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -27,11 +69,31 @@ const Home = ({ onNavigateToLogin, onNavigateToRegister, onNavigateToApp }) => {
           </a>
 
           <nav className="landing-nav" aria-label="Main navigation">
-            <a href="#home">Home</a>
-            <a href="#events">Events</a>
-            <a href="#categories">Categories</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`landing-nav-link ${activeSection === item.id ? "is-active" : ""}`}
+                onClick={() => {
+                  if (item.id === "about") {
+                    setActiveSection(item.id);
+                    onNavigateToAbout?.();
+                    return;
+                  }
+
+                  if (item.id === "contact") {
+                    setActiveSection(item.id);
+                    onNavigateToContact?.();
+                    return;
+                  }
+
+                  scrollToSection(item.id);
+                }}
+                aria-current={activeSection === item.id ? "page" : undefined}
+              >
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           <div className="landing-actions">
@@ -101,27 +163,27 @@ const Home = ({ onNavigateToLogin, onNavigateToRegister, onNavigateToApp }) => {
               <h3>Quick Links</h3>
               <ul className="landing-footer__links">
                 <li>
-                  <button type="button" className="landing-footer__button-link" onClick={() => scrollToSection("about")}>
+                  <button type="button" className="landing-footer__button-link" onClick={onNavigateToAbout}>
                     About Us
                   </button>
                 </li>
                 <li>
-                  <button type="button" className="landing-footer__button-link" onClick={() => scrollToSection("events")}>
+                  <button type="button" className="landing-footer__button-link" onClick={onNavigateToPartnerEvents}>
                     Partner Events
                   </button>
                 </li>
                 <li>
-                  <button type="button" className="landing-footer__button-link" onClick={() => scrollToSection("home")}>
+                  <button type="button" className="landing-footer__button-link" onClick={onNavigateToFaq}>
                     FAQ
                   </button>
                 </li>
                 <li>
-                  <button type="button" className="landing-footer__button-link" onClick={() => scrollToSection("categories")}>
+                  <button type="button" className="landing-footer__button-link" onClick={onNavigateToPricing}>
                     Pricing
                   </button>
                 </li>
                 <li>
-                  <button type="button" className="landing-footer__button-link" onClick={() => scrollToSection("contact")}>
+                  <button type="button" className="landing-footer__button-link" onClick={onNavigateToContact}>
                     Contact
                   </button>
                 </li>
@@ -154,8 +216,12 @@ const Home = ({ onNavigateToLogin, onNavigateToRegister, onNavigateToApp }) => {
             <Container className="landing-shell landing-footer__bottom-row">
               <span>&copy; 2026 Eventify. All rights reserved.</span>
               <span className="landing-footer__bottom-links">
-                <a href="#contact">Privacy Policy</a>
-                <a href="#contact">Terms of Service</a>
+                <button type="button" className="landing-footer__button-link" onClick={onNavigateToPrivacyPolicy}>
+                  Privacy Policy
+                </button>
+                <button type="button" className="landing-footer__button-link" onClick={onNavigateToTermsOfService}>
+                  Terms of Service
+                </button>
               </span>
             </Container>
           </div>

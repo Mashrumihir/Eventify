@@ -40,6 +40,13 @@ import VerifyEmail from './components/Auth/VerifyEmail'
 import SetNewPassword from './components/Auth/SetNewPassword'
 import EmailVerified from './components/Auth/EmailVerified'
 import Home from './components/Home/Home'
+import Contact from './components/Home/Contact/Contact'
+import About from './components/Home/About/About'
+import PartnerEvents from './components/Home/PartnerEvents/PartnerEvents'
+import FAQ from './components/Home/FAQ/FAQ'
+import Pricing from './components/Home/Pricing/Pricing'
+import PrivacyPolicy from './components/Home/PrivacyPolicy/PrivacyPolicy'
+import TermsOfService from './components/Home/TermsOfService/TermsOfService'
 
 export default function App() {
   const [appMode, setAppMode] = useState('organizer') // 'attend' or 'organizer'
@@ -121,7 +128,60 @@ export default function App() {
           onNavigateToLogin={() => setAuthMode('login')} 
           onNavigateToRegister={() => setAuthMode('register')}
           onNavigateToApp={() => setAuthMode('login')}
+          onNavigateToContact={() => setAuthMode('contact')}
+          onNavigateToAbout={() => setAuthMode('about')}
+          onNavigateToPartnerEvents={() => setAuthMode('partnerEvents')}
+          onNavigateToFaq={() => setAuthMode('faq')}
+          onNavigateToPricing={() => setAuthMode('pricing')}
+          onNavigateToPrivacyPolicy={() => setAuthMode('privacyPolicy')}
+          onNavigateToTermsOfService={() => setAuthMode('termsOfService')}
         />
+      )
+    }
+    if (authMode === 'termsOfService') {
+      return (
+        <TermsOfService onBack={() => setAuthMode('home')} />
+      )
+    }
+    if (authMode === 'privacyPolicy') {
+      return (
+        <PrivacyPolicy onBack={() => setAuthMode('home')} />
+      )
+    }
+    if (authMode === 'pricing') {
+      return (
+        <Pricing
+          onBack={() => setAuthMode('home')}
+          onContact={() => setAuthMode('contact')}
+          onGetStarted={() => setAuthMode('login')}
+        />
+      )
+    }
+    if (authMode === 'faq') {
+      return (
+        <FAQ
+          onBack={() => setAuthMode('home')}
+          onContact={() => setAuthMode('contact')}
+        />
+      )
+    }
+    if (authMode === 'partnerEvents') {
+      return (
+        <PartnerEvents onBack={() => setAuthMode('home')} />
+      )
+    }
+    if (authMode === 'about') {
+      return (
+        <About
+          onBack={() => setAuthMode('home')}
+          onGetStarted={() => setAuthMode('login')}
+          onContact={() => setAuthMode('contact')}
+        />
+      )
+    }
+    if (authMode === 'contact') {
+      return (
+        <Contact onBack={() => setAuthMode('home')} />
       )
     }
     if (authMode === 'register') {

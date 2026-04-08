@@ -82,12 +82,6 @@ const Hero = ({ onNavigateToApp }) => {
           <div className="hero-visual__frame">
             <img src={heroImage} alt="Featured event collage" />
           </div>
-          <div className="hero-visual__dots" aria-hidden="true">
-            <span />
-            <span />
-            <span className="is-active" />
-            <span />
-          </div>
         </div>
       </Container>
     </section>
