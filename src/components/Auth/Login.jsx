@@ -1,26 +1,22 @@
 import React, { useState } from 'react'
 import './css/Login.css'
-import { loginUser } from '../../services/authService'
 
 export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgot }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    setError('')
     setIsSubmitting(true)
 
-    try {
-      const data = await loginUser({ email, password })
-      onLogin(data.user)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setIsSubmitting(false)
-    }
+    onLogin({
+      name: 'Eventify User',
+      email,
+      role: 'attend',
+    })
+
+    setIsSubmitting(false)
   }
 
   return (
@@ -44,8 +40,6 @@ export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgo
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {error ? <p className="auth-error-text">{error}</p> : null}
-
           <div className="auth-input-group">
             <label>Email Address</label>
             <div className="auth-input-wrapper">

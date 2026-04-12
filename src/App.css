@@ -64,7 +64,12 @@
 .page-content {
   flex: 1;
   overflow-y: auto;
-  padding: 28px;
+  padding: 28px 24px 40px;
+}
+
+.page-content > * {
+  width: min(1180px, 100%);
+  margin: 0 auto;
 }
 
 /* ── Login/Logout Screen ── */
@@ -162,6 +167,10 @@
 }
 
 @media (max-width: 768px) {
+  .page-content {
+    padding: 18px 14px 28px;
+  }
+
   .hero-photo-shell {
     min-height: auto;
   }

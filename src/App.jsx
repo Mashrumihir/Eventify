@@ -56,7 +56,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null)
 
   const setModeFromRole = (role) => {
-    setAppMode(role === 'attend' ? 'attend' : role === 'organize' ? 'organizer' : 'admin')
+    setAppMode(role === 'attend' ? 'attend' : role === 'organize' || role === 'organizer' ? 'organizer' : 'admin')
   }
 
   const handleLogout = () => {

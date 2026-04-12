@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import './css/Register.css'
-import { registerUser } from '../../services/authService'
 
 export default function Register({ onRegister, onNavigateToLogin, onSelectRole }) {
-  const [role, setRole] = useState('attend') // 'attend', 'organize', 'admin'
+  const [role, setRole] = useState('attend') // 'attend', 'organizer', 'admin'
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,7 +19,7 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
@@ -31,20 +30,13 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     setError('')
     setIsSubmitting(true)
 
-    try {
-      const data = await registerUser({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role,
-      })
+    onRegister({
+      name: formData.name || 'Eventify User',
+      email: formData.email,
+      role,
+    })
 
-      onRegister(data.user)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setIsSubmitting(false)
-    }
+    setIsSubmitting(false)
   }
 
   return (
@@ -108,8 +100,8 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
                 </button>
                 <button 
                   type="button"  
-                  className={`role-btn ${role === 'organize' ? 'active' : ''}`}
-                  onClick={() => setRole('organize')}
+                  className={`role-btn ${role === 'organizer' ? 'active' : ''}`}
+                  onClick={() => setRole('organizer')}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="13" x2="12" y2="19"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
                   Organize Events
