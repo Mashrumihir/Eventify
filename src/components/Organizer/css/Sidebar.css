@@ -1,31 +1,32 @@
 .org-sidebar {
-  width: 280px;
-  background: linear-gradient(180deg, #2a3d7d 0%, #25a4c5 100%);
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: linear-gradient(180deg, #283991 0%, #2aa6c7 100%);
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding-bottom: 24px;
+  height: 100vh;
+  padding-bottom: 18px;
 }
 
 .org-sidebar-logo {
-  padding: 32px 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 16px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 8px;
 }
 
 .org-sidebar-logo h2 {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
   color: #fff;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
 }
 
 .org-sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 0 16px;
+  padding: 0 10px;
   flex: 1;
   overflow-y: auto;
 }
@@ -33,15 +34,15 @@
 .org-nav-item {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
-  padding: 14px 20px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.75);
-  font-size: 15px;
-  font-weight: 500;
-  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
@@ -53,31 +54,35 @@
 }
 
 .org-nav-item.active {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
   font-weight: 600;
-  border-left: 4px solid #fff;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
 }
 
 .org-nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.org-nav-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .org-sidebar-bottom {
-  padding: 0 16px;
+  padding: 0 10px;
   margin-top: auto;
 }
 
 .org-nav-item.org-logout {
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 24px;
+  color: #ff5b5b;
+  margin-top: 14px;
 }
 
 .org-nav-item.org-logout:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ff7b7b;
 }
