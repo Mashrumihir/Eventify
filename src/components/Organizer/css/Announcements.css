@@ -1,65 +1,153 @@
+.ann-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
 .ann-header-left {
   display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.bg-cyan { background: #06b6d4; }
-.text-white { color: #fff; }
-
-.ann-btn-new {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #3b82f6;
-  background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
-  color: #fff;
-  border: none;
-  padding: 12px 20px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.ann-btn-new:hover {
-  opacity: 0.95;
-}
-
-.ann-btn-new:active {
-  transform: translateY(1px);
-}
-
-.ann-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.ann-card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-  display: flex;
-  gap: 20px;
   align-items: flex-start;
+  gap: 12px;
 }
 
-.ann-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+.ann-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3563e9 0%, #22b8d6 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.bg-blue { background: #2563eb; }
+.ann-btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3563e9 0%, #22b8d6 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ann-status-message {
+  margin: 0 2px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.ann-compose-card {
+  background: #ffffff;
+  border: 1px solid #dbe5f2;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ann-compose-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f274a;
+}
+
+.ann-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ann-form-group label {
+  font-size: 13px;
+  color: #0f274a;
+}
+
+.ann-form-group input,
+.ann-form-group select,
+.ann-form-group textarea {
+  width: 100%;
+  border: 1px solid #d6dfec;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #243f67;
+  background: #ffffff;
+  outline: none;
+  font-family: inherit;
+}
+
+.ann-form-group textarea {
+  resize: vertical;
+  min-height: 118px;
+}
+
+.ann-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.ann-btn-cancel,
+.ann-btn-send {
+  min-height: 34px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ann-btn-cancel {
+  background: #ffffff;
+  border: 1px solid #d6dfec;
+  color: #243f67;
+}
+
+.ann-btn-send {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3563e9 0%, #22b8d6 100%);
+  color: #ffffff;
+}
+
+.ann-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ann-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #dbe5f2;
+  border-radius: 20px;
+  padding: 16px;
+}
+
+.ann-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3563e9 0%, #22b8d6 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 .ann-content-wrap {
   display: flex;
@@ -68,21 +156,42 @@
 }
 
 .ann-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text-primary);
   margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f274a;
 }
 
 .ann-meta {
+  margin: 0;
   font-size: 13px;
-  color: var(--color-text-muted);
-  margin: 0 0 8px 0;
+  color: #6b7f9f;
 }
 
 .ann-text {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  line-height: 1.5;
   margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #243f67;
+}
+
+@media (max-width: 900px) {
+  .ann-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .ann-card {
+    flex-direction: column;
+  }
+
+  .ann-btn-new {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ann-compose-actions {
+    flex-direction: column;
+  }
 }

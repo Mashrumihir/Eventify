@@ -11,11 +11,11 @@
 }
 
 .admin-sidebar-logo {
-  padding: 22px 20px;
+  padding: 18px 16px;
 }
 
 .admin-sidebar-logo h2 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   margin: 0 0 4px 0;
   color: #fff;
@@ -23,14 +23,14 @@
 }
 
 .admin-logo-subtitle {
-  font-size: 10px;
+  font-size: 9px;
   color: #94a3b8;
   font-weight: 400;
 }
 
 .admin-sidebar-nav {
   flex: 1;
-  padding: 0 12px;
+  padding: 0 10px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -40,16 +40,16 @@
 .admin-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border: none;
   background: transparent;
   color: #f1f5f9;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-align: left;
-  border-radius: 10px;
+  border-radius: 9px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -68,17 +68,17 @@
   align-items: center;
   justify-content: center;
   opacity: 0.9;
-  width: 18px;
-  height: 18px;
-}
-
-.admin-nav-icon svg {
   width: 16px;
   height: 16px;
 }
 
+.admin-nav-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
 .admin-sidebar-bottom {
-  padding: 16px 12px;
+  padding: 14px 10px;
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 

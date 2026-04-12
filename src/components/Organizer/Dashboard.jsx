@@ -1,6 +1,7 @@
 import React from 'react'
-import { FiBarChart2, FiClipboard } from 'react-icons/fi'
-import { LuTicket } from 'react-icons/lu'
+import { FaIndianRupeeSign } from 'react-icons/fa6'
+import { FiTrendingUp } from 'react-icons/fi'
+import { LuClipboardList, LuTicket } from 'react-icons/lu'
 import './css/Dashboard.css'
 
 const STATS = [
@@ -8,7 +9,7 @@ const STATS = [
     title: 'Total Revenue',
     value: '\u20B93,367',
     change: '+100.0%',
-    icon: <span className="org-rupee-icon">\u20B9</span>,
+    icon: <FaIndianRupeeSign size={16} />,
     color: 'blue',
   },
   {
@@ -22,14 +23,14 @@ const STATS = [
     title: 'Total Events',
     value: '9',
     change: '+100.0%',
-    icon: <FiClipboard size={18} />,
+    icon: <LuClipboardList size={18} />,
     color: 'green',
   },
   {
     title: 'Conversion Rate',
     value: '82.9%',
     change: '+100.0%',
-    icon: <FiBarChart2 size={18} />,
+    icon: <FiTrendingUp size={18} />,
     color: 'orange',
   },
 ]

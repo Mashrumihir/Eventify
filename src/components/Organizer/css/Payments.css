@@ -1,90 +1,74 @@
 .pay-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .pay-stat-card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+  background: #ffffff;
+  border: 1px solid #dbe5f2;
+  border-radius: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.pay-stat-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  gap: 14px;
 }
 
 .pay-icon-box {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-/* Color palettes for the boxes */
-.bg-emerald-light { background: #dcfce7; }
-.text-emerald { color: #16a34a; }
-
-.bg-yellow-light { background: #fef9c3; }
-.text-yellow { color: #eab308; }
-
-.bg-blue-light { background: #dbeafe; }
-.text-blue { color: #3b82f6; }
-
-.bg-red-light { background: #fee2e2; }
-.text-red { color: #ef4444; }
-
-.pay-stat-change {
-  font-size: 13px;
-  font-weight: 600;
+.pay-green {
+  background: #d8f5df;
+  color: #22b14c;
 }
 
-.text-green { color: #16a34a; }
-.text-red { color: #ef4444; }
+.pay-yellow {
+  background: #fff0bf;
+  color: #e09a00;
+}
 
-.pay-stat-bot {
+.pay-blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.pay-red {
+  background: #fde2e3;
+  color: #ef4444;
+}
+
+.pay-stat-copy {
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
 .pay-lbl {
-  font-size: 13.5px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-size: 14px;
+  color: #607596;
 }
 
 .pay-val {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--color-text-primary);
-  line-height: 1.1;
-}
-
-/* Table Area */
-.pay-table-card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
-}
-
-.pay-table-title {
   font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 20px 0;
+  font-weight: 800;
+  color: #0f274a;
+}
+
+.pay-table-shell {
+  background: #ffffff;
+  border: 1px solid #dbe5f2;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
 .pay-table-overflow {
@@ -94,31 +78,66 @@
 
 .pay-table {
   width: 100%;
+  min-width: 1000px;
   border-collapse: collapse;
 }
 
 .pay-table th {
-  text-align: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  font-size: 13px;
+  padding: 14px 10px;
+  border-bottom: 1px solid #dbe5f2;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f274a;
+  white-space: nowrap;
 }
 
 .pay-table td {
-  text-align: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 14px 10px;
+  border-bottom: 1px solid #e7edf6;
   font-size: 14px;
+  color: #234067;
+  white-space: nowrap;
 }
 
-.pay-table tbody tr:last-child td {
-  border-bottom: none;
+.pay-table th:first-child,
+.pay-table td:first-child {
+  padding-left: 18px;
 }
 
-/* Font utilities */
-.font-bold { font-weight: 700; }
-.font-medium { font-weight: 600; }
-.text-primary { color: var(--color-text-primary); }
-.text-secondary { color: var(--color-text-secondary); }
+.pay-table th:last-child,
+.pay-table td:last-child {
+  padding-right: 18px;
+}
+
+.pay-id-cell {
+  color: #234067;
+}
+
+.pay-amount-cell {
+  font-weight: 800;
+  color: #0f274a;
+}
+
+.pay-status {
+  font-weight: 500;
+}
+
+.pay-status-success {
+  color: #08a44b;
+}
+
+.pay-status-free {
+  color: #ef4444;
+}
+
+@media (max-width: 1100px) {
+  .pay-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .pay-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -55,6 +55,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authMode, setAuthMode] = useState('home') // 'home', 'login' or 'register'
   const [currentUser, setCurrentUser] = useState(null)
+  const [organizerEditorState, setOrganizerEditorState] = useState({ mode: 'create', eventData: null })
 
   const setModeFromRole = (role) => {
     setAppMode(role === 'attend' ? 'attend' : role === 'organize' || role === 'organizer' ? 'organizer' : 'admin')
@@ -67,15 +68,28 @@ export default function App() {
     setActivePage('dashboard')
   }
 
+  const handleOrganizerNavigate = (page) => {
+    if (page === 'createEvent') {
+      setOrganizerEditorState({ mode: 'create', eventData: null })
+    }
+
+    setActivePage(page)
+  }
+
+  const handleOrganizerEditEvent = (eventData) => {
+    setOrganizerEditorState({ mode: 'edit', eventData })
+    setActivePage('createEvent')
+  }
+
   const renderPage = () => {
     if (appMode === 'organizer') {
       switch (activePage) {
         case 'dashboard':
           return <OrgDashboard />
         case 'createEvent':
-          return <OrgCreateEvent />
+          return <OrgCreateEvent mode={organizerEditorState.mode} eventData={organizerEditorState.eventData} onNavigate={handleOrganizerNavigate} />
         case 'manageEvents':
-          return <OrgManageEvents />
+          return <OrgManageEvents onNavigate={handleOrganizerNavigate} onEditEvent={handleOrganizerEditEvent} />
         case 'bookings':
           return <OrgBookings />
         case 'payments':
@@ -251,7 +265,7 @@ export default function App() {
   return (
     <div className="app-layout">
       {appMode === 'organizer' ? (
-        <OrgSidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
+        <OrgSidebar activePage={activePage} onNavigate={handleOrganizerNavigate} onLogout={handleLogout} />
       ) : appMode === 'admin' ? (
         <AdminSidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       ) : (
