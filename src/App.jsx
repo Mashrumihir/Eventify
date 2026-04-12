@@ -59,6 +59,13 @@ export default function App() {
     setAppMode(role === 'attend' ? 'attend' : role === 'organize' ? 'organizer' : 'admin')
   }
 
+  const handleLogout = () => {
+    setCurrentUser(null)
+    setIsLoggedIn(false)
+    setAuthMode('login')
+    setActivePage('dashboard')
+  }
+
   const renderPage = () => {
     if (appMode === 'organizer') {
       switch (activePage) {
@@ -195,6 +202,7 @@ export default function App() {
         onRegister={(user) => {
           setCurrentUser(user)
           setModeFromRole(user.role)
+          setActivePage('dashboard')
           setIsLoggedIn(true)
         }} 
       />
@@ -227,6 +235,7 @@ export default function App() {
       onLogin={(user) => {
         setCurrentUser(user)
         setModeFromRole(user.role)
+        setActivePage('dashboard')
         setIsLoggedIn(true)
       }} 
       onNavigateToRegister={() => setAuthMode('register')} 
@@ -237,11 +246,11 @@ export default function App() {
   return (
     <div className="app-layout">
       {appMode === 'organizer' ? (
-        <OrgSidebar activePage={activePage} onNavigate={setActivePage} onLogout={() => setIsLoggedIn(false)} />
+        <OrgSidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       ) : appMode === 'admin' ? (
-        <AdminSidebar activePage={activePage} onNavigate={setActivePage} onLogout={() => setIsLoggedIn(false)} />
+        <AdminSidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       ) : (
-        <Sidebar activePage={activePage} onNavigate={setActivePage} onLogout={() => setIsLoggedIn(false)} />
+        <Sidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       )}
       <div className="main-wrapper">
         {/* Header */}

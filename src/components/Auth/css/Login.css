@@ -68,6 +68,16 @@
   gap: 20px;
 }
 
+.auth-error-text {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(254, 202, 202, 0.35);
+  border-radius: 8px;
+  background: rgba(127, 29, 29, 0.3);
+  color: #fee2e2;
+  font-size: 13px;
+}
+
 .auth-input-group {
   display: flex;
   flex-direction: column;
@@ -185,6 +195,11 @@
 
 .auth-submit-btn:active {
   transform: translateY(1px);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .auth-card-footer {
