@@ -1,142 +1,325 @@
-import React, { useState } from 'react'
+import { useRef, useState } from 'react'
 import './css/Profile.css'
+
+const DEFAULT_PROFILE = {
+  name: 'Mihir Mashru',
+  email: 'mashrumihir15@gmail.com',
+  phone: '+91 8180253134',
+  location: 'Jamnagar, Gujarat',
+  dob: '2006-04-06',
+  bio: '',
+  photo: '',
+}
+
+const DEFAULT_PASSWORDS = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+}
+
+function UserIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function LockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
+function EyeIcon({ open }) {
+  if (open) {
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    )
+  }
+
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.17 4.19" />
+      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+      <path d="M1 1l22 22" />
+    </svg>
+  )
+}
+
+function CameraIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  )
+}
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState('edit-profile')
+  const [profile, setProfile] = useState(DEFAULT_PROFILE)
+  const [passwords, setPasswords] = useState(DEFAULT_PASSWORDS)
+  const [message, setMessage] = useState('')
+  const [showPasswords, setShowPasswords] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  })
+  const fileInputRef = useRef(null)
+
+  const handleProfileChange = (event) => {
+    const { name, value } = event.target
+    setProfile((current) => ({ ...current, [name]: value }))
+  }
+
+  const handlePasswordChange = (event) => {
+    const { name, value } = event.target
+    setPasswords((current) => ({ ...current, [name]: value }))
+  }
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const photoUrl = URL.createObjectURL(file)
+    setProfile((current) => ({ ...current, photo: photoUrl }))
+    setMessage('Profile photo selected successfully.')
+  }
+
+  const handleSaveProfile = () => {
+    setMessage('Profile changes saved successfully.')
+  }
+
+  const handleResetProfile = () => {
+    setProfile(DEFAULT_PROFILE)
+    setMessage('Profile form reset.')
+  }
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords((current) => ({ ...current, [field]: !current[field] }))
+  }
+
+  const handleUpdatePassword = () => {
+    if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
+      setMessage('Fill in all password fields.')
+      return
+    }
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setMessage('New password and confirm password do not match.')
+      return
+    }
+
+    if (passwords.newPassword.length < 8) {
+      setMessage('New password must be at least 8 characters long.')
+      return
+    }
+
+    setPasswords(DEFAULT_PASSWORDS)
+    setMessage('Password updated successfully.')
+  }
+
+  const handleResetPasswords = () => {
+    setPasswords(DEFAULT_PASSWORDS)
+    setMessage('Password form cleared.')
+  }
 
   return (
     <div className="org-page-layout">
-      {/* Header */}
       <div className="org-profile-header">
         <h1 className="org-page-title">Profile Settings</h1>
         <p className="org-page-subtitle">Manage your account settings and preferences</p>
       </div>
 
       <div className="org-profile-container">
-        {/* Left Tabs */}
         <div className="org-profile-sidebar">
-          <button 
+          <button
             className={`org-tab-btn ${activeTab === 'edit-profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('edit-profile')}
+            type="button"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span className="org-tab-icon"><UserIcon /></span>
             Edit Profile
           </button>
-          <button 
+
+          <button
             className={`org-tab-btn ${activeTab === 'change-password' ? 'active' : ''}`}
             onClick={() => setActiveTab('change-password')}
+            type="button"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span className="org-tab-icon"><LockIcon /></span>
             Change Password
-          </button>
-          <button 
-            className={`org-tab-btn ${activeTab === 'notifications' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            Notifications
           </button>
         </div>
 
-        {/* Content Area */}
         <div className="org-profile-content">
-          {activeTab === 'edit-profile' && <EditProfileTab />}
-          {activeTab === 'change-password' && <ChangePasswordTab />}
-          {activeTab === 'notifications' && <NotificationsTab />}
+          {activeTab === 'edit-profile' ? (
+            <EditProfileTab
+              fileInputRef={fileInputRef}
+              onChange={handleProfileChange}
+              onPhotoChange={handlePhotoChange}
+              onPhotoClick={handlePhotoClick}
+              onReset={handleResetProfile}
+              onSave={handleSaveProfile}
+              profile={profile}
+            />
+          ) : null}
+
+          {activeTab === 'change-password' ? (
+            <ChangePasswordTab
+              onChange={handlePasswordChange}
+              onReset={handleResetPasswords}
+              onSubmit={handleUpdatePassword}
+              passwords={passwords}
+              showPasswords={showPasswords}
+              onToggleVisibility={togglePasswordVisibility}
+            />
+          ) : null}
+
+          {message ? <p className="org-status-message">{message}</p> : null}
         </div>
       </div>
     </div>
   )
 }
 
-function EditProfileTab() {
+function EditProfileTab({
+  fileInputRef,
+  onChange,
+  onPhotoChange,
+  onPhotoClick,
+  onReset,
+  onSave,
+  profile,
+}) {
   return (
     <div className="org-tab-pane">
+      <h2 className="org-pane-title">Edit Profile</h2>
+
       <div className="org-profile-photo-section">
         <div className="org-photo-avatar">
-          MM
-          <div className="org-photo-camera">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </div>
+          {profile.photo ? (
+            <img src={profile.photo} alt={profile.name} className="org-photo-image" />
+          ) : (
+            profile.name.slice(0, 2).toUpperCase()
+          )}
+          <button className="org-photo-camera" onClick={onPhotoClick} type="button">
+            <CameraIcon />
+          </button>
+          <input
+            ref={fileInputRef}
+            className="org-hidden-input"
+            type="file"
+            accept="image/*"
+            onChange={onPhotoChange}
+          />
         </div>
+
         <div className="org-photo-info">
           <h3>Profile Photo</h3>
           <p>Upload a new photo or change existing</p>
-          <button className="org-upload-btn">Upload Photo</button>
+          <button className="org-upload-btn" onClick={onPhotoClick} type="button">Upload Photo</button>
         </div>
       </div>
 
       <div className="org-form-grid">
         <div className="org-form-group">
-          <label>Full Name</label>
-          <input type="text" placeholder="" defaultValue="Mihir Mashru" />
+          <label htmlFor="org-name">Full Name</label>
+          <input id="org-name" name="name" type="text" value={profile.name} onChange={onChange} />
         </div>
+
         <div className="org-form-group">
-          <label>Email Address</label>
-          <input type="email" placeholder="" defaultValue="mihir@example.com" />
+          <label htmlFor="org-email">Email Address</label>
+          <input id="org-email" name="email" type="email" value={profile.email} onChange={onChange} />
         </div>
+
         <div className="org-form-group">
-          <label>Phone Number</label>
-          <input type="tel" placeholder="" />
+          <label htmlFor="org-phone">Phone Number</label>
+          <input id="org-phone" name="phone" type="text" value={profile.phone} onChange={onChange} />
         </div>
+
         <div className="org-form-group">
-          <label>Location</label>
-          <input type="text" placeholder="" />
+          <label htmlFor="org-location">Location</label>
+          <input id="org-location" name="location" type="text" value={profile.location} onChange={onChange} />
         </div>
+
         <div className="org-form-group">
-          <label>Date of Birth</label>
-          <div className="org-input-with-icon">
-            <input type="text" placeholder="" />
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </div>
+          <label htmlFor="org-dob">Date of Birth</label>
+          <input id="org-dob" name="dob" type="date" value={profile.dob} onChange={onChange} />
         </div>
-      </div>
-      
-      <div className="org-form-group" style={{ marginTop: '20px' }}>
-        <label>Bio</label>
-        <textarea rows="4" placeholder=""></textarea>
+
+        <div className="org-form-group org-full-width">
+          <label htmlFor="org-bio">Bio</label>
+          <textarea id="org-bio" name="bio" rows="4" value={profile.bio} onChange={onChange} />
+        </div>
       </div>
 
       <div className="org-form-actions">
-        <button className="org-btn-primary">Save Changes</button>
-        <button className="org-btn-secondary">Cancel</button>
+        <button className="org-btn-primary" onClick={onSave} type="button">Save Changes</button>
+        <button className="org-btn-secondary" onClick={onReset} type="button">Cancel</button>
       </div>
     </div>
   )
 }
 
-function ChangePasswordTab() {
+function ChangePasswordTab({
+  onChange,
+  onReset,
+  onSubmit,
+  passwords,
+  showPasswords,
+  onToggleVisibility,
+}) {
   return (
     <div className="org-tab-pane">
       <h2 className="org-pane-title">Change Password</h2>
-      
-      <div className="org-form-stack">
-        <div className="org-form-group">
-          <label>Current Password</label>
-          <div className="org-input-with-icon-left-right">
-            <svg className="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" placeholder="Enter current password" />
-            <svg className="icon-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-        </div>
-        
-        <div className="org-form-group">
-          <label>New Password</label>
-          <div className="org-input-with-icon-left-right">
-            <svg className="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" placeholder="Enter new password" />
-            <svg className="icon-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-        </div>
 
-        <div className="org-form-group">
-          <label>Confirm New Password</label>
-          <div className="org-input-with-icon-left-right">
-            <svg className="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" placeholder="Confirm new password" />
-            <svg className="icon-right" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-        </div>
+      <div className="org-form-stack org-form-stack-wide">
+        <PasswordField
+          field="currentPassword"
+          label="Current Password"
+          onChange={onChange}
+          onToggleVisibility={onToggleVisibility}
+          placeholder="Enter current password"
+          showPasswords={showPasswords}
+          value={passwords.currentPassword}
+        />
+
+        <PasswordField
+          field="newPassword"
+          label="New Password"
+          onChange={onChange}
+          onToggleVisibility={onToggleVisibility}
+          placeholder="Enter new password"
+          showPasswords={showPasswords}
+          value={passwords.newPassword}
+        />
+
+        <PasswordField
+          field="confirmPassword"
+          label="Confirm New Password"
+          onChange={onChange}
+          onToggleVisibility={onToggleVisibility}
+          placeholder="Confirm new password"
+          showPasswords={showPasswords}
+          value={passwords.confirmPassword}
+        />
       </div>
 
       <div className="org-password-rules">
@@ -150,62 +333,41 @@ function ChangePasswordTab() {
       </div>
 
       <div className="org-form-actions">
-        <button className="org-btn-primary">Update Password</button>
-        <button className="org-btn-secondary">Cancel</button>
+        <button className="org-btn-primary" onClick={onSubmit} type="button">Update Password</button>
+        <button className="org-btn-secondary" onClick={onReset} type="button">Cancel</button>
       </div>
     </div>
   )
 }
 
-function NotificationsTab() {
+function PasswordField({
+  field,
+  label,
+  onChange,
+  onToggleVisibility,
+  placeholder,
+  showPasswords,
+  value,
+}) {
   return (
-    <div className="org-tab-pane">
-      <h2 className="org-pane-title">Notification Preferences</h2>
-
-      <div className="org-notification-list">
-        <div className="org-notification-item">
-          <div className="org-notification-info">
-            <div className="org-notification-title">Email Notifications</div>
-            <div className="org-notification-desc">Receive updates via email</div>
-          </div>
-          <label className="org-toggle-switch">
-            <input type="checkbox" defaultChecked />
-            <span className="org-slider round"></span>
-          </label>
-        </div>
-
-        <div className="org-notification-item">
-          <div className="org-notification-info">
-            <div className="org-notification-title">Push Notifications</div>
-            <div className="org-notification-desc">Receive push notifications on your device</div>
-          </div>
-          <label className="org-toggle-switch">
-            <input type="checkbox" defaultChecked />
-            <span className="org-slider round"></span>
-          </label>
-        </div>
-
-        <div className="org-notification-item">
-          <div className="org-notification-info">
-            <div className="org-notification-title">Event Reminders</div>
-            <div className="org-notification-desc">Get reminded about upcoming events</div>
-          </div>
-          <label className="org-toggle-switch">
-            <input type="checkbox" defaultChecked />
-            <span className="org-slider round"></span>
-          </label>
-        </div>
-
-        <div className="org-notification-item">
-          <div className="org-notification-info">
-            <div className="org-notification-title">Promotions & Offers</div>
-            <div className="org-notification-desc">Receive promotional emails and special offers</div>
-          </div>
-          <label className="org-toggle-switch">
-            <input type="checkbox" />
-            <span className="org-slider round"></span>
-          </label>
-        </div>
+    <div className="org-form-group">
+      <label htmlFor={field}>{label}</label>
+      <div className="org-input-with-icon-left-right">
+        <svg className="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <input
+          id={field}
+          name={field}
+          type={showPasswords[field] ? 'text' : 'password'}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+        />
+        <button className="org-password-toggle" onClick={() => onToggleVisibility(field)} type="button">
+          <EyeIcon open={showPasswords[field]} />
+        </button>
       </div>
     </div>
   )

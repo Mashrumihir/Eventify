@@ -4,8 +4,9 @@ import Sidebar from './components/Attend/Sidebar'
 import Dashboard from './components/Attend/Dashboard'
 import BrowseEvents from './components/Attend/BrowseEvents'
 import EventDetails from './components/Attend/EventDetails'
-import Payment from './components/Attend/Payment'
 import PaymentSuccess from './components/Attend/PaymentSuccess'
+import Payments from './components/Attend/Payments'
+import TaxInvoice from './components/Attend/TaxInvoice'
 import MyBookings from './components/Attend/MyBookings'
 import Notifications from './components/Attend/Notifications'
 import Wishlist from './components/Attend/Wishlist'
@@ -117,8 +118,12 @@ export default function App() {
           return <Payment onNavigate={setActivePage} />
         case 'paymentSuccess':
           return <PaymentSuccess onNavigate={setActivePage} />
+        case 'payments':
+          return <Payments />
+        case 'taxInvoice':
+          return <TaxInvoice onNavigate={setActivePage} />
         case 'bookings':
-          return <MyBookings />
+          return <MyBookings onNavigate={setActivePage} />
         case 'wishlist':
           return <Wishlist />
         case 'notifications':
@@ -210,18 +215,18 @@ export default function App() {
     if (authMode === 'forgotPassword') {
       return <ForgotPassword 
         onBack={() => setAuthMode('login')} 
-        onSubmit={(email) => setAuthMode('verifyEmail')} 
+        onSubmit={() => setAuthMode('verifyEmail')} 
       />
     }
     if (authMode === 'verifyEmail') {
       return <VerifyEmail 
         onBack={() => setAuthMode('login')}
-        onSubmit={(code) => setAuthMode('setNewPassword')}
+        onSubmit={() => setAuthMode('setNewPassword')}
       />
     }
     if (authMode === 'setNewPassword') {
       return <SetNewPassword 
-        onSubmit={(newPass) => setAuthMode('emailVerified')}
+        onSubmit={() => setAuthMode('emailVerified')}
       />
     }
     if (authMode === 'emailVerified') {

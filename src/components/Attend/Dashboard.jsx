@@ -9,10 +9,11 @@ const stats = [
     color: 'blue',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9a2 2 0 0 0 0 6v1a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1a2 2 0 0 0 0-6V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
-        <path d="M13 6v12"/>
-        <path d="M11 10h4"/>
-        <path d="M11 14h4"/>
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 3 14 8 19 8"/>
+        <line x1="9" y1="12" x2="15" y2="12"/>
+        <line x1="9" y1="16" x2="15" y2="16"/>
+        <line x1="9" y1="8" x2="10" y2="8"/>
       </svg>
     ),
   },
@@ -67,6 +68,11 @@ const upcomingEvents = [
     time: '6:00 PM',
     location: 'Central Mumbai, Maharashtra',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=240&fit=crop&auto=format',
+    rating: 4.8,
+    reviews: 234,
+    price: 45,
+    sold: 7,
+    capacity: 200,
   },
   {
     id: 'tech-summit',
@@ -77,6 +83,11 @@ const upcomingEvents = [
     time: '9:00 AM',
     location: 'Jamnagar, Gujarat',
     image: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=600&h=240&fit=crop&auto=format',
+    rating: 4.9,
+    reviews: 412,
+    price: 99,
+    sold: 58,
+    capacity: 180,
   },
   {
     id: 'gourmet-food',
@@ -87,6 +98,11 @@ const upcomingEvents = [
     time: '12:00 PM',
     location: 'Rajkot, Gujarat',
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=240&fit=crop&auto=format',
+    rating: 4.7,
+    reviews: 168,
+    price: 60,
+    sold: 24,
+    capacity: 150,
   },
 ]
 
@@ -131,6 +147,8 @@ function StatCard({ stat }) {
 }
 
 function UpcomingCard({ event }) {
+  const soldPercent = Math.min(100, Math.round((event.sold / event.capacity) * 100))
+
   return (
     <div className="upcoming-card" id={`event-${event.id}`}>
       <div className="upcoming-img-wrap">
@@ -159,6 +177,25 @@ function UpcomingCard({ event }) {
             </svg>
             {event.location}
           </span>
+        </div>
+        <div className="upcoming-rating">
+          <span className="upcoming-rating-score">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            {event.rating}
+          </span>
+          <span className="upcoming-rating-reviews">({event.reviews} reviews)</span>
+        </div>
+        <div className="upcoming-sales">
+          <div className="upcoming-sales-text">Tickets Sold: {event.sold} / {event.capacity}</div>
+          <div className="upcoming-sales-track">
+            <div className="upcoming-sales-fill" style={{ width: `${soldPercent}%` }} />
+          </div>
+        </div>
+        <div className="upcoming-footer">
+          <div className="upcoming-price">₹{event.price}</div>
+          <button className="upcoming-view-btn">View Details</button>
         </div>
       </div>
     </div>

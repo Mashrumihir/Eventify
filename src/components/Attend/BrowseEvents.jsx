@@ -15,6 +15,8 @@ const EVENTS = [
     rating: 4.8,
     reviews: 234,
     price: 45,
+    sold: 7,
+    capacity: 200,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=280&fit=crop&auto=format',
   },
@@ -28,6 +30,8 @@ const EVENTS = [
     rating: 4.9,
     reviews: 512,
     price: 120,
+    sold: 63,
+    capacity: 180,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=600&h=280&fit=crop&auto=format',
   },
@@ -41,6 +45,8 @@ const EVENTS = [
     rating: 4.7,
     reviews: 89,
     price: 0,
+    sold: 12,
+    capacity: 90,
     wishlisted: true,
     image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=600&h=280&fit=crop&auto=format',
   },
@@ -54,6 +60,8 @@ const EVENTS = [
     rating: 4.9,
     reviews: 678,
     price: 85,
+    sold: 71,
+    capacity: 220,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1546519638405-a2f5e0494b39?w=600&h=280&fit=crop&auto=format',
   },
@@ -67,6 +75,8 @@ const EVENTS = [
     rating: 4.6,
     reviews: 345,
     price: 30,
+    sold: 34,
+    capacity: 160,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=280&fit=crop&auto=format',
   },
@@ -80,6 +90,8 @@ const EVENTS = [
     rating: 4.8,
     reviews: 156,
     price: 0,
+    sold: 18,
+    capacity: 120,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=280&fit=crop&auto=format',
   },
@@ -93,6 +105,8 @@ const EVENTS = [
     rating: 5.0,
     reviews: 423,
     price: 55,
+    sold: 29,
+    capacity: 140,
     wishlisted: true,
     image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=600&h=280&fit=crop&auto=format',
   },
@@ -106,6 +120,8 @@ const EVENTS = [
     rating: 4.9,
     reviews: 267,
     price: 75,
+    sold: 25,
+    capacity: 110,
     wishlisted: false,
     image: 'https://images.unsplash.com/photo-1592478411213-6153e4ebc07d?w=600&h=280&fit=crop&auto=format',
   },
@@ -113,6 +129,8 @@ const EVENTS = [
 
 /* ─── Event Card ─────────────────────────────────────────────────────────────── */
 function EventCard({ event, onToggleWishlist, onNavigate }) {
+  const soldPercent = Math.min(100, Math.round((event.sold / event.capacity) * 100))
+
   return (
     <div className="be-card" id={`be-card-${event.id}`}>
       <div className="be-card-img-wrap">
@@ -160,6 +178,13 @@ function EventCard({ event, onToggleWishlist, onNavigate }) {
             <span className="be-rating-val">{event.rating}</span>
             <span className="be-reviews">({event.reviews} reviews)</span>
           </span>
+        </div>
+
+        <div className="be-sales">
+          <div className="be-sales-text">Tickets Sold: {event.sold} / {event.capacity}</div>
+          <div className="be-sales-track">
+            <div className="be-sales-fill" style={{ width: `${soldPercent}%` }} />
+          </div>
         </div>
 
         <div className="be-card-footer">

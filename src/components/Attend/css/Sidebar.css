@@ -69,7 +69,7 @@
 }
 
 .sidebar-nav-item.logout {
-  margin-top: 12px;
+  margin-top: auto;
   color: var(--color-logout);
 }
 

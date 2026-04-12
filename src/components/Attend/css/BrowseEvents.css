@@ -236,6 +236,31 @@
   font-size: 12px;
 }
 
+.be-sales {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.be-sales-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.be-sales-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #e5edf9;
+  overflow: hidden;
+}
+
+.be-sales-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+}
+
 /* Card Footer */
 .be-card-footer {
   display: flex;
