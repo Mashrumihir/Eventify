@@ -53,6 +53,11 @@ export default function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authMode, setAuthMode] = useState('home') // 'home', 'login' or 'register'
+  const [currentUser, setCurrentUser] = useState(null)
+
+  const setModeFromRole = (role) => {
+    setAppMode(role === 'attend' ? 'attend' : role === 'organize' ? 'organizer' : 'admin')
+  }
 
   const renderPage = () => {
     if (appMode === 'organizer') {
@@ -187,8 +192,9 @@ export default function App() {
     if (authMode === 'register') {
       return <Register 
         onNavigateToLogin={() => setAuthMode('login')}
-        onRegister={(role) => {
-          setAppMode(role === 'attend' ? 'attend' : role === 'organize' ? 'organizer' : 'admin')
+        onRegister={(user) => {
+          setCurrentUser(user)
+          setModeFromRole(user.role)
           setIsLoggedIn(true)
         }} 
       />
@@ -218,7 +224,11 @@ export default function App() {
     }
 
     return <Login 
-      onLogin={() => setIsLoggedIn(true)} 
+      onLogin={(user) => {
+        setCurrentUser(user)
+        setModeFromRole(user.role)
+        setIsLoggedIn(true)
+      }} 
       onNavigateToRegister={() => setAuthMode('register')} 
       onNavigateToForgot={() => setAuthMode('forgotPassword')}
     />
@@ -258,8 +268,8 @@ export default function App() {
               Switch to {appMode === 'attend' ? 'Organizer' : appMode === 'organizer' ? 'Admin' : 'Attend'} View
             </button>
             <div className="user-profile">
-              <div className="user-avatar">MM</div>
-              <span className="user-name">Mihir Mashru</span>
+              <div className="user-avatar">{currentUser?.name?.slice(0, 2).toUpperCase() || 'EV'}</div>
+              <span className="user-name">{currentUser?.name || 'Eventify User'}</span>
               <span className="chevron-down">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"/>

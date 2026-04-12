@@ -1,14 +1,26 @@
 import React, { useState } from 'react'
 import './css/Login.css'
+import { loginUser } from '../../services/authService'
 
 export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgot }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // For now, any login attempt succeeds
-    onLogin()
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const data = await loginUser({ email, password })
+      onLogin(data.user)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -32,6 +44,8 @@ export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgo
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error ? <p className="auth-error-text">{error}</p> : null}
+
           <div className="auth-input-group">
             <label>Email Address</label>
             <div className="auth-input-wrapper">
@@ -71,8 +85,8 @@ export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgo
             <a href="#" className="auth-forgot-link" onClick={(e) => { e.preventDefault(); onNavigateToForgot && onNavigateToForgot(); }}>Forgot Password?</a>
           </div>
 
-          <button type="submit" className="auth-submit-btn">
-            Sign In
+          <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 

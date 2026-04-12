@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import './css/Register.css'
+import { registerUser } from '../../services/authService'
 
 export default function Register({ onRegister, onNavigateToLogin, onSelectRole }) {
   const [role, setRole] = useState('attend') // 'attend', 'organize', 'admin'
@@ -9,6 +10,8 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     password: '',
     confirmPassword: ''
   })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e) => {
     setFormData({
@@ -17,10 +20,31 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Trigger the register flow. The app might use the role for appMode.
-    onRegister(role)
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const data = await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role,
+      })
+
+      onRegister(data.user)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -44,6 +68,8 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error ? <p className="auth-error-text">{error}</p> : null}
+
           <div className="auth-input-wrapper">
             <svg className="auth-input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <input 
@@ -130,8 +156,8 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
             </button>
           </div>
 
-          <button type="submit" className="auth-submit-btn">
-            Create Account
+          <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
