@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .rr-btn-write {
@@ -10,45 +10,42 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: #258ac1;
+  background: #2598c6;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  box-shadow: 0 8px 20px rgba(37, 152, 198, 0.18);
 }
 
 .rr-btn-write:hover {
   background-color: #1d6e9a;
 }
 
-/* Stat Cards */
 .rr-stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .rr-stat-card {
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 12px 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-width: 1px;
-  border-style: solid;
+  border: 1px solid transparent;
 }
 
-/* Backgrounds and Borders */
-.rr-bg-light-yellow { background-color: #fffbeb; border-color: #fef3c7; }
-.rr-bg-light-green { background-color: #f0fdf4; border-color: #dcfce7; }
-.rr-bg-light-orange { background-color: #fff7ed; border-color: #ffedd5; }
-.rr-bg-light-red { background-color: #fef2f2; border-color: #fee2e2; }
+.rr-bg-light-yellow { background-color: #fffefb; border-color: #efe5be; }
+.rr-bg-light-green { background-color: #f3fff7; border-color: #d8f3df; }
+.rr-bg-light-orange { background-color: #fff9e5; border-color: #f8e6a8; }
+.rr-bg-light-red { background-color: #fff5f5; border-color: #f5d7d7; }
 
-/* Text colors for labels/status */
-.rr-text-yellow { color: #64748b; } /* In mockup Total Reviews text is just grey/dark */
+.rr-text-yellow { color: #5f7aa2; }
 .rr-text-green { color: #16a34a; }
 .rr-text-orange { color: #ea580c; }
 .rr-text-red { color: #dc2626; }
@@ -62,57 +59,63 @@
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 4px;
-  color: #64748b;
+  color: #4b648d;
 }
 
 .rr-stat-count {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 800;
+  color: #173b7a;
 }
 
 .rr-stat-icon {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.rr-icon-bg-yellow { background-color: #fef08a; color: #ca8a04; }
+.rr-icon-bg-yellow { background-color: #fff3ca; color: #ca8a04; }
 .rr-icon-bg-green { background-color: #dcfce7; color: #16a34a; }
-.rr-icon-bg-orange { background-color: #ffedd5; color: #ea580c; }
-.rr-icon-bg-red { background-color: #fee2e2; color: #dc2626; }
+.rr-icon-bg-orange { background-color: #ffe7a6; color: #d79a00; }
+.rr-icon-bg-red { background-color: #ffe1e1; color: #ef4444; }
 
-/* Reviews List */
 .rr-list-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+}
+
+.rr-shell-card {
+  background: #ffffff;
+  border: 1px solid #d7e4f3;
+  border-radius: 16px;
+  padding: 12px;
 }
 
 .rr-card {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: 14px;
+  padding: 12px 14px;
   display: flex;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  border: 1px solid #f1f5f9;
+  gap: 12px;
+  border: 1px solid #cfe0f6;
 }
 
 .rr-avatar {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background-color: #f1f5f9;
-  color: #64748b;
+  background-color: #edf2ff;
+  color: #8094b6;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 11px;
 }
 
 .rr-card-main {
@@ -123,27 +126,28 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 10px;
 }
 
 .rr-user-info h4 {
   margin: 0 0 4px 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1f4788;
 }
 
 .rr-event-name {
   display: block;
   font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 8px;
+  color: #5f7aa2;
+  margin-bottom: 4px;
 }
 
 .rr-rating-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .rr-stars {
@@ -154,73 +158,112 @@
 
 .rr-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: #8fa2c0;
+}
+
+.rr-status-select {
+  min-width: 118px;
+  height: 28px;
+  padding: 0 8px 0 12px;
+  border: 1px solid #cfe0f6;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #16a34a;
+  background: #ffffff;
 }
 
 .rr-status {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .rr-review-text {
   font-size: 14px;
-  color: #334155;
+  color: #173b7a;
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
-/* Action Buttons */
 .rr-action-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .rr-btn-secondary {
-  padding: 6px 16px;
+  min-height: 28px;
+  padding: 0 12px;
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #475569;
-  font-weight: 500;
+  border: 1px solid #bfd3ea;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #31568d;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.rr-btn-secondary:hover {
-  background: #f8fafc;
-  color: #1e293b;
 }
 
 .rr-btn-success {
-  padding: 6px 16px;
+  min-height: 28px;
+  padding: 0 12px;
   background: #dcfce7;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 10px;
+  font-size: 12px;
   color: #16a34a;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .rr-btn-danger {
-  padding: 6px 16px;
+  min-height: 28px;
+  padding: 0 12px;
   background: #fee2e2;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 10px;
+  font-size: 12px;
   color: #dc2626;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .rr-btn-danger-light {
-  padding: 6px 16px;
-  background: #fef2f2;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #ef4444;
-  font-weight: 500;
+  min-height: 28px;
+  padding: 0 12px;
+  background: #fff5f5;
+  border: 1px solid #ffc7c7;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #ff4d4f;
+  font-weight: 700;
   cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .rr-stats-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .rr-header-section,
+  .rr-main-header,
+  .rr-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rr-stats-container {
+    grid-template-columns: 1fr;
+  }
+
+  .rr-btn-write,
+  .rr-status-select {
+    align-self: flex-start;
+  }
+
+  .rr-action-row {
+    flex-wrap: wrap;
+  }
 }

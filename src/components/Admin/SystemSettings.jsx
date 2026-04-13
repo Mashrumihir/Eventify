@@ -1,5 +1,36 @@
 import React, { useMemo, useState } from 'react'
+import {
+  BsBasket,
+  BsCameraReels,
+  BsController,
+  BsDribbble,
+  BsGlobeAmericas,
+  BsMicFill,
+  BsMusicNoteBeamed,
+  BsPaletteFill,
+  BsPcDisplay,
+  BsTag,
+} from 'react-icons/bs'
 import './css/SystemSettings.css'
+
+const CATEGORY_ICON_OPTIONS = [
+  { key: 'technology', label: 'Technology', Icon: BsPcDisplay },
+  { key: 'music', label: 'Music', Icon: BsMusicNoteBeamed },
+  { key: 'sports', label: 'Sports', Icon: BsDribbble },
+  { key: 'food', label: 'Food', Icon: BsBasket },
+  { key: 'arts', label: 'Arts', Icon: BsPaletteFill },
+  { key: 'media', label: 'Media', Icon: BsCameraReels },
+  { key: 'gaming', label: 'Gaming', Icon: BsController },
+  { key: 'speaker', label: 'Speaker', Icon: BsMicFill },
+  { key: 'community', label: 'Community', Icon: BsGlobeAmericas },
+  { key: 'general', label: 'General', Icon: BsTag },
+]
+
+const CATEGORY_ICON_MAP = Object.fromEntries(
+  CATEGORY_ICON_OPTIONS.map(({ key, Icon }) => [key, Icon])
+)
+
+const getCategoryIcon = (iconKey) => CATEGORY_ICON_MAP[iconKey] || BsTag
 
 const INITIAL_CATEGORIES = [
   {
@@ -7,35 +38,35 @@ const INITIAL_CATEGORIES = [
     title: 'Technology',
     description: 'Tech conferences and workshops',
     events: 45,
-    iconClass: 'bi-pc-display'
+    iconKey: 'technology',
   },
   {
     id: 2,
     title: 'Music',
     description: 'Concerts and music festivals',
     events: 32,
-    iconClass: 'bi-music-note-beamed'
+    iconKey: 'music',
   },
   {
     id: 3,
     title: 'Sports',
     description: 'Sports events and championships',
     events: 28,
-    iconClass: 'bi-dribbble'
+    iconKey: 'sports',
   },
   {
     id: 4,
     title: 'Food',
     description: 'Food event',
     events: 25,
-    iconClass: 'bi-basket'
+    iconKey: 'food',
   },
   {
     id: 5,
     title: 'Arts',
     description: 'Art exhibitions and cultural events',
     events: 19,
-    iconClass: 'bi-palette-fill'
+    iconKey: 'arts',
   }
 ]
 
@@ -47,7 +78,7 @@ const CMS_PAGES = [
 ]
 
 export default function SystemSettings() {
-  const [activeTab, setActiveTab] = useState('Categories')
+  const activeTab = 'Categories'
   const [categories, setCategories] = useState(INITIAL_CATEGORIES)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const [editingCategoryId, setEditingCategoryId] = useState(null)
@@ -55,7 +86,7 @@ export default function SystemSettings() {
     name: '',
     eventCount: '0',
     description: '',
-    iconClass: 'bi-tag',
+    iconKey: 'general',
   })
 
   const modalTitle = useMemo(
@@ -70,7 +101,7 @@ export default function SystemSettings() {
         name: category.title,
         eventCount: String(category.events),
         description: category.description,
-        iconClass: category.iconClass || 'bi-tag',
+        iconKey: category.iconKey || 'general',
       })
     } else {
       setEditingCategoryId(null)
@@ -78,7 +109,7 @@ export default function SystemSettings() {
         name: '',
         eventCount: '0',
         description: '',
-        iconClass: 'bi-tag',
+        iconKey: 'general',
       })
     }
 
@@ -100,7 +131,6 @@ export default function SystemSettings() {
   const handleSaveCategory = () => {
     const trimmedName = categoryForm.name.trim()
     const trimmedDescription = categoryForm.description.trim()
-    const trimmedIconClass = categoryForm.iconClass.trim() || 'bi-tag'
     const parsedCount = Number.parseInt(categoryForm.eventCount, 10)
 
     if (!trimmedName) {
@@ -112,7 +142,7 @@ export default function SystemSettings() {
       title: trimmedName,
       description: trimmedDescription || 'No description provided',
       events: Number.isNaN(parsedCount) ? 0 : parsedCount,
-      iconClass: trimmedIconClass,
+      iconKey: categoryForm.iconKey || 'general',
     }
 
     setCategories((current) => {
@@ -139,7 +169,7 @@ export default function SystemSettings() {
         <div className="ss-header-section">
           <div>
             <h2 className="admin-section-title" style={{color: '#1e3a8a'}}>System Settings</h2>
-            <p className="admin-section-subtitle">Configure platform settings and manage content.</p>
+            <p className="admin-section-subtitle">Configure platform settings.</p>
           </div>
         </div>
 
@@ -154,26 +184,30 @@ export default function SystemSettings() {
 
         {activeTab === 'Categories' && (
           <div className="ss-grid">
-            {categories.map(category => (
-              <div key={category.id} className="ss-card">
-                <div className="ss-card-header">
-                  <div className="ss-card-icon">
-                    <i className={`bi ${category.iconClass}`} />
+            {categories.map((category) => {
+              const CategoryIcon = getCategoryIcon(category.iconKey)
+
+              return (
+                <div key={category.id} className="ss-card">
+                  <div className="ss-card-header">
+                    <div className="ss-card-icon">
+                      <CategoryIcon size={18} />
+                    </div>
+                    <button className="ss-btn-edit" type="button" onClick={() => openCategoryModal(category)}>
+                      Edit
+                    </button>
                   </div>
-                  <button className="ss-btn-edit" type="button" onClick={() => openCategoryModal(category)}>
-                    Edit
-                  </button>
+                  <div className="ss-card-body">
+                    <h3>{category.title}</h3>
+                    <p>{category.description}</p>
+                  </div>
+                  <div className="ss-card-footer">
+                    <span>Events</span>
+                    <span className="ss-events-count">{category.events}</span>
+                  </div>
                 </div>
-                <div className="ss-card-body">
-                  <h3>{category.title}</h3>
-                  <p>{category.description}</p>
-                </div>
-                <div className="ss-card-footer">
-                  <span>Events</span>
-                  <span className="ss-events-count">{category.events}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -292,6 +326,13 @@ export default function SystemSettings() {
                 </div>
               </div>
 
+              <div className="ss-icon-preview-row">
+                <span className="ss-icon-preview-label">Selected Icon</span>
+                <div className="ss-icon-preview">
+                  {React.createElement(getCategoryIcon(categoryForm.iconKey), { size: 20 })}
+                </div>
+              </div>
+
               <div className="ss-modal-field">
                 <label htmlFor="category-description">Description</label>
                 <textarea
@@ -303,14 +344,23 @@ export default function SystemSettings() {
               </div>
 
               <div className="ss-modal-field">
-                <label htmlFor="category-icon">Bootstrap Icon Class</label>
-                <input
-                  id="category-icon"
-                  type="text"
-                  value={categoryForm.iconClass}
-                  onChange={(event) => handleCategoryFormChange('iconClass', event.target.value)}
-                />
-                <span className="ss-help-text">Example: `bi-pc-display`, `bi-music-note-beamed`, `bi-dribbble`.</span>
+                <label>Category Icon</label>
+                <div className="ss-icon-picker">
+                  {CATEGORY_ICON_OPTIONS.map(({ key, label, Icon: PickerIcon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`ss-icon-option ${categoryForm.iconKey === key ? 'active' : ''}`}
+                      onClick={() => handleCategoryFormChange('iconKey', key)}
+                      aria-label={`Select ${label} icon`}
+                      title={label}
+                    >
+                      {React.createElement(PickerIcon, { size: 18 })}
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+                <span className="ss-help-text">Pick an icon to match the category card layout.</span>
               </div>
 
               <div className="ss-modal-actions">

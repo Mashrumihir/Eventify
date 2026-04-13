@@ -4,6 +4,7 @@
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .um-tabs {
@@ -11,6 +12,7 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .um-tab-btn {
@@ -37,10 +39,14 @@
   gap: 18px;
   flex: 1;
   justify-content: flex-end;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .um-search-box {
   width: min(520px, 100%);
+  min-width: 220px;
+  flex: 1 1 280px;
 }
 
 .um-search-box input {
@@ -91,9 +97,12 @@
   border: 1px solid #d4e1f2;
   border-radius: 14px;
   padding: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .um-table-wrapper {
+  width: 100%;
   overflow-x: auto;
 }
 
@@ -108,7 +117,7 @@
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
-  text-align: left;
+  text-align: center;
   padding: 12px;
 }
 
@@ -156,8 +165,8 @@
 .um-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .um-status.active {
@@ -246,5 +255,6 @@
 
   .um-search-box {
     width: 100%;
+    min-width: 0;
   }
 }

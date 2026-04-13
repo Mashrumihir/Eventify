@@ -32,6 +32,8 @@ import EventModeration from './components/Admin/EventModeration'
 import SystemSettings from './components/Admin/SystemSettings'
 import AdminNotifications from './components/Admin/Notifications'
 import AdminReviews from './components/Admin/ReviewsRatings'
+import ContactMessages from './components/Admin/ContactMessages'
+import NewsletterSubscribers from './components/Admin/NewsletterSubscribers'
 
 // Auth Imports
 import Login from './components/Auth/Login'
@@ -116,9 +118,9 @@ export default function App() {
         case 'notifications':
           return <AdminNotifications />
         case 'contactMessages':
-          return <PlaceholderPage title="Contact Messages" />
+          return <ContactMessages />
         case 'newsletterSubscribers':
-          return <PlaceholderPage title="Newsletter Subscribers" />
+          return <NewsletterSubscribers />
         case 'reviews':
           return <AdminReviews />
         default:
@@ -311,31 +313,6 @@ export default function App() {
           </div>
         </header>
         )}
-        
-        {/* Helper Top Bar for Admin Switch explicitly for dev mode since normal header is hidden */}
-        {appMode === 'admin' && (
-          <div style={{ position: 'absolute', top: '16px', right: '32px', zIndex: 10 }}>
-            <button 
-              onClick={() => {
-                setAppMode('attend');
-                setActivePage('dashboard');
-              }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                background: '#f8fafc',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '13px',
-                color: '#334155'
-              }}
-            >
-              Back to Attend View
-            </button>
-          </div>
-        )}
-
         {/* Page Content */}
         <main className={`page-content ${appMode === 'admin' ? 'admin-page-shell' : ''}`}>
           {renderPage()}

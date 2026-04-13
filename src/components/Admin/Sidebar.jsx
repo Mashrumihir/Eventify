@@ -114,7 +114,11 @@ export default function Sidebar({ activePage, onNavigate, onLogout }) {
       <div className="admin-sidebar-bottom">
         <button className="admin-nav-item admin-logout" onClick={onLogout}>
           <span className="admin-nav-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H4"/><path d="M20 19v-2.5a1.5 1.5 0 0 0-1.5-1.5H17"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
           </span>
           Logout
         </button>

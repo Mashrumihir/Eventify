@@ -141,36 +141,36 @@ export default function ProfileSettings() {
   }
 
   return (
-    <div className="ps-layout-main">
-      <div>
-        <h1 className="ps-page-title">Profile Settings</h1>
-        <p className="ps-page-subtitle">Manage your account settings and preferences</p>
+    <div className="org-page-layout">
+      <div className="org-profile-header">
+        <h1 className="org-page-title">Profile Settings</h1>
+        <p className="org-page-subtitle">Manage your account settings and preferences</p>
       </div>
 
-      <div className="ps-content">
-        <div className="ps-sidebar">
+      <div className="org-profile-container">
+        <div className="org-profile-sidebar">
           <button
-            className={`ps-tab-btn ${activeTab === 'edit-profile' ? 'active' : ''}`}
+            className={`org-tab-btn ${activeTab === 'edit-profile' ? 'active' : ''}`}
             onClick={() => setActiveTab('edit-profile')}
             type="button"
           >
-            <span className="icon-placeholder"><UserIcon /></span>
+            <span className="org-tab-icon"><UserIcon /></span>
             Edit Profile
           </button>
 
           <button
-            className={`ps-tab-btn ${activeTab === 'change-password' ? 'active' : ''}`}
+            className={`org-tab-btn ${activeTab === 'change-password' ? 'active' : ''}`}
             onClick={() => setActiveTab('change-password')}
             type="button"
           >
-            <span className="icon-placeholder"><LockIcon /></span>
+            <span className="org-tab-icon"><LockIcon /></span>
             Change Password
           </button>
         </div>
 
-        <div className="ps-panel">
+        <div className="org-profile-content">
           {activeTab === 'edit-profile' ? (
-            <EditProfilePanel
+            <EditProfileTab
               fileInputRef={fileInputRef}
               onChange={handleProfileChange}
               onPhotoChange={handlePhotoChange}
@@ -182,7 +182,7 @@ export default function ProfileSettings() {
           ) : null}
 
           {activeTab === 'change-password' ? (
-            <ChangePasswordPanel
+            <ChangePasswordTab
               onChange={handlePasswordChange}
               onReset={handleResetPasswords}
               onSubmit={handleUpdatePassword}
@@ -192,14 +192,14 @@ export default function ProfileSettings() {
             />
           ) : null}
 
-          {message ? <p className="ps-status-message">{message}</p> : null}
+          {message ? <p className="org-status-message">{message}</p> : null}
         </div>
       </div>
     </div>
   )
 }
 
-function EditProfilePanel({
+function EditProfileTab({
   fileInputRef,
   onChange,
   onPhotoChange,
@@ -209,78 +209,76 @@ function EditProfilePanel({
   profile,
 }) {
   return (
-    <div className="panel-container">
-      <h2 className="panel-title">Edit Profile</h2>
+    <div className="org-tab-pane">
+      <h2 className="org-pane-title">Edit Profile</h2>
 
-      <div className="ps-photo-section">
-        <div className="ps-photo-avatar">
+      <div className="org-profile-photo-section">
+        <div className="org-photo-avatar">
           {profile.photo ? (
-            <img src={profile.photo} alt={profile.name} className="ps-photo-image" />
+            <img src={profile.photo} alt={profile.name} className="org-photo-image" />
           ) : (
             profile.name.slice(0, 2).toUpperCase()
           )}
-          <button className="ps-photo-edit-btn" onClick={onPhotoClick} type="button">
+          <button className="org-photo-camera" onClick={onPhotoClick} type="button">
             <CameraIcon />
           </button>
           <input
             ref={fileInputRef}
-            className="ps-hidden-input"
+            className="org-hidden-input"
             type="file"
             accept="image/*"
             onChange={onPhotoChange}
           />
         </div>
 
-        <div className="ps-photo-info">
+        <div className="org-photo-info">
           <h3>Profile Photo</h3>
           <p>Upload a new photo or change existing</p>
-          <button className="ps-link-btn" onClick={onPhotoClick} type="button">Upload Photo</button>
+          <button className="org-upload-btn" onClick={onPhotoClick} type="button">Upload Photo</button>
         </div>
       </div>
 
-      <hr className="ps-divider" />
-
-      <div className="ps-form-grid">
-        <div className="ps-form-group">
-          <label htmlFor="attend-name">Full Name</label>
-          <input id="attend-name" name="name" type="text" value={profile.name} onChange={onChange} />
+      <div className="org-form-grid">
+        <div className="org-form-group">
+          <label htmlFor="org-name">Full Name</label>
+          <input id="org-name" name="name" type="text" value={profile.name} onChange={onChange} />
         </div>
 
-        <div className="ps-form-group">
-          <label htmlFor="attend-email">Email Address</label>
-          <input id="attend-email" name="email" type="email" value={profile.email} onChange={onChange} />
+        <div className="org-form-group">
+          <label htmlFor="org-email">Email Address</label>
+          <input id="org-email" name="email" type="email" value={profile.email} onChange={onChange} />
         </div>
 
-        <div className="ps-form-group">
-          <label htmlFor="attend-phone">Phone Number</label>
-          <input id="attend-phone" name="phone" type="text" value={profile.phone} onChange={onChange} />
+        <div className="org-form-group">
+          <label htmlFor="org-phone">Phone Number</label>
+          <input id="org-phone" name="phone" type="text" value={profile.phone} onChange={onChange} />
         </div>
 
-        <div className="ps-form-group">
-          <label htmlFor="attend-location">Location</label>
-          <input id="attend-location" name="location" type="text" value={profile.location} onChange={onChange} />
+        <div className="org-form-group">
+          <label htmlFor="org-location">Location</label>
+          <input id="org-location" name="location" type="text" value={profile.location} onChange={onChange} />
         </div>
 
-        <div className="ps-form-group">
-          <label htmlFor="attend-dob">Date of Birth</label>
-          <input id="attend-dob" name="dob" type="date" value={profile.dob} onChange={onChange} />
+        <div className="org-form-group">
+          <label htmlFor="org-dob">Date of Birth</label>
+          <input id="org-dob" name="dob" type="date" value={profile.dob} onChange={onChange} />
         </div>
 
-        <div className="ps-form-group full-width">
-          <label htmlFor="attend-bio">Bio</label>
-          <textarea id="attend-bio" name="bio" rows="4" value={profile.bio} onChange={onChange} />
+        <div className="org-form-group org-full-width">
+          <label htmlFor="org-bio">Bio</label>
+          <textarea id="org-bio" name="bio" rows="4" value={profile.bio} onChange={onChange} />
         </div>
       </div>
 
-      <div className="ps-actions">
-        <button className="ps-btn-primary" onClick={onSave} type="button">Save Changes</button>
-        <button className="ps-btn-outline" onClick={onReset} type="button">Cancel</button>
+      <div className="org-form-actions">
+        <button className="org-btn-primary" onClick={onSave} type="button">Save Changes</button>
+        <button className="org-btn-secondary" onClick={onReset} type="button">Cancel</button>
       </div>
     </div>
   )
 }
 
-function ChangePasswordPanel({
+function ChangePasswordTab({
   onChange,
   onReset,
   onSubmit,
@@ -289,10 +287,10 @@ function ChangePasswordPanel({
   onToggleVisibility,
 }) {
   return (
-    <div className="panel-container">
-      <h2 className="panel-title">Change Password</h2>
+    <div className="org-tab-pane">
+      <h2 className="org-pane-title">Change Password</h2>
 
-      <div className="ps-form-column ps-form-column-wide">
+      <div className="org-form-stack org-form-stack-wide">
         <PasswordField
           field="currentPassword"
           label="Current Password"
@@ -302,6 +300,7 @@ function ChangePasswordPanel({
           showPasswords={showPasswords}
           value={passwords.currentPassword}
         />
+
         <PasswordField
           field="newPassword"
           label="New Password"
@@ -311,6 +310,7 @@ function ChangePasswordPanel({
           showPasswords={showPasswords}
           value={passwords.newPassword}
         />
+
         <PasswordField
           field="confirmPassword"
           label="Confirm New Password"
@@ -320,21 +320,21 @@ function ChangePasswordPanel({
           showPasswords={showPasswords}
           value={passwords.confirmPassword}
         />
-
-        <div className="ps-password-rules">
-          <h4>Password must contain:</h4>
-          <ul>
-            <li>At least 8 characters long</li>
-            <li>Include uppercase and lowercase letters</li>
-            <li>Include at least one number</li>
-            <li>Include at least one special character</li>
-          </ul>
-        </div>
       </div>
 
-      <div className="ps-actions">
-        <button className="ps-btn-primary" onClick={onSubmit} type="button">Update Password</button>
-        <button className="ps-btn-outline" onClick={onReset} type="button">Cancel</button>
+      <div className="org-password-rules">
+        <p className="org-rules-title">Password must contain:</p>
+        <ul>
+          <li>At least 8 characters long</li>
+          <li>Include uppercase and lowercase letters</li>
+          <li>Include at least one number</li>
+          <li>Include at least one special character</li>
+        </ul>
+      </div>
+
+      <div className="org-form-actions">
+        <button className="org-btn-primary" onClick={onSubmit} type="button">Update Password</button>
+        <button className="org-btn-secondary" onClick={onReset} type="button">Cancel</button>
       </div>
     </div>
   )
@@ -350,10 +350,10 @@ function PasswordField({
   value,
 }) {
   return (
-    <div className="ps-form-group">
+    <div className="org-form-group">
       <label htmlFor={field}>{label}</label>
-      <div className="ps-input-with-icons">
-        <svg className="icon-left" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="org-input-with-icon-left-right">
+        <svg className="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="11" width="18" height="11" rx="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
@@ -365,11 +365,7 @@ function PasswordField({
           value={value}
           onChange={onChange}
         />
-        <button
-          className="ps-password-toggle"
-          onClick={() => onToggleVisibility(field)}
-          type="button"
-        >
+        <button className="org-password-toggle" onClick={() => onToggleVisibility(field)} type="button">
           <EyeIcon open={showPasswords[field]} />
         </button>
       </div>
