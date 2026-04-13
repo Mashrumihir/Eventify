@@ -115,6 +115,10 @@ export default function App() {
           return <SystemSettings />
         case 'notifications':
           return <AdminNotifications />
+        case 'contactMessages':
+          return <PlaceholderPage title="Contact Messages" />
+        case 'newsletterSubscribers':
+          return <PlaceholderPage title="Newsletter Subscribers" />
         case 'reviews':
           return <AdminReviews />
         default:
@@ -333,7 +337,7 @@ export default function App() {
         )}
 
         {/* Page Content */}
-        <main className="page-content">
+        <main className={`page-content ${appMode === 'admin' ? 'admin-page-shell' : ''}`}>
           {renderPage()}
         </main>
       </div>

@@ -1,34 +1,41 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import './css/SystemSettings.css'
 
-const CATEGORIES = [
+const INITIAL_CATEGORIES = [
   {
     id: 1,
     title: 'Technology',
     description: 'Tech conferences and workshops',
     events: 45,
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    iconClass: 'bi-pc-display'
   },
   {
     id: 2,
     title: 'Music',
     description: 'Concerts and music festivals',
     events: 32,
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    iconClass: 'bi-music-note-beamed'
   },
   {
     id: 3,
     title: 'Sports',
     description: 'Sports events and championships',
     events: 28,
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+    iconClass: 'bi-dribbble'
   },
   {
     id: 4,
+    title: 'Food',
+    description: 'Food event',
+    events: 25,
+    iconClass: 'bi-basket'
+  },
+  {
+    id: 5,
     title: 'Arts',
     description: 'Art exhibitions and cultural events',
     events: 19,
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+    iconClass: 'bi-palette-fill'
   }
 ]
 
@@ -41,6 +48,85 @@ const CMS_PAGES = [
 
 export default function SystemSettings() {
   const [activeTab, setActiveTab] = useState('Categories')
+  const [categories, setCategories] = useState(INITIAL_CATEGORIES)
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
+  const [editingCategoryId, setEditingCategoryId] = useState(null)
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    eventCount: '0',
+    description: '',
+    iconClass: 'bi-tag',
+  })
+
+  const modalTitle = useMemo(
+    () => (editingCategoryId ? 'Edit Category' : 'Add Category'),
+    [editingCategoryId]
+  )
+
+  const openCategoryModal = (category = null) => {
+    if (category) {
+      setEditingCategoryId(category.id)
+      setCategoryForm({
+        name: category.title,
+        eventCount: String(category.events),
+        description: category.description,
+        iconClass: category.iconClass || 'bi-tag',
+      })
+    } else {
+      setEditingCategoryId(null)
+      setCategoryForm({
+        name: '',
+        eventCount: '0',
+        description: '',
+        iconClass: 'bi-tag',
+      })
+    }
+
+    setIsCategoryModalOpen(true)
+  }
+
+  const closeCategoryModal = () => {
+    setIsCategoryModalOpen(false)
+    setEditingCategoryId(null)
+  }
+
+  const handleCategoryFormChange = (field, value) => {
+    setCategoryForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  const handleSaveCategory = () => {
+    const trimmedName = categoryForm.name.trim()
+    const trimmedDescription = categoryForm.description.trim()
+    const trimmedIconClass = categoryForm.iconClass.trim() || 'bi-tag'
+    const parsedCount = Number.parseInt(categoryForm.eventCount, 10)
+
+    if (!trimmedName) {
+      return
+    }
+
+    const nextCategory = {
+      id: editingCategoryId || Date.now(),
+      title: trimmedName,
+      description: trimmedDescription || 'No description provided',
+      events: Number.isNaN(parsedCount) ? 0 : parsedCount,
+      iconClass: trimmedIconClass,
+    }
+
+    setCategories((current) => {
+      if (editingCategoryId) {
+        return current.map((category) =>
+          category.id === editingCategoryId ? nextCategory : category
+        )
+      }
+
+      return [...current, nextCategory]
+    })
+
+    closeCategoryModal()
+  }
 
   return (
     <div className="admin-page-layout">
@@ -58,31 +144,8 @@ export default function SystemSettings() {
         </div>
 
         <div className="ss-controls-container">
-          <div className="ss-tabs">
-            <button 
-              className={`ss-tab-btn ${activeTab === 'Categories' ? 'active' : ''}`}
-              onClick={() => setActiveTab('Categories')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              Categories
-            </button>
-            <button 
-              className={`ss-tab-btn ${activeTab === 'Financial' ? 'active' : ''}`}
-              onClick={() => setActiveTab('Financial')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              Financial
-            </button>
-            <button 
-              className={`ss-tab-btn ${activeTab === 'CMS Pages' ? 'active' : ''}`}
-              onClick={() => setActiveTab('CMS Pages')}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              CMS Pages
-            </button>
-          </div>
           {activeTab === 'Categories' && (
-            <button className="ss-btn-add">
+            <button className="ss-btn-add" onClick={() => openCategoryModal()}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add Category
             </button>
@@ -91,20 +154,15 @@ export default function SystemSettings() {
 
         {activeTab === 'Categories' && (
           <div className="ss-grid">
-            {CATEGORIES.map(category => (
+            {categories.map(category => (
               <div key={category.id} className="ss-card">
                 <div className="ss-card-header">
                   <div className="ss-card-icon">
-                    {category.icon}
+                    <i className={`bi ${category.iconClass}`} />
                   </div>
-                  <div className="ss-card-actions">
-                    <button className="ss-action-icon">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                    </button>
-                    <button className="ss-action-icon">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    </button>
-                  </div>
+                  <button className="ss-btn-edit" type="button" onClick={() => openCategoryModal(category)}>
+                    Edit
+                  </button>
                 </div>
                 <div className="ss-card-body">
                   <h3>{category.title}</h3>
@@ -191,6 +249,79 @@ export default function SystemSettings() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {isCategoryModalOpen && (
+          <div className="ss-modal-backdrop" onClick={closeCategoryModal}>
+            <div className="ss-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="ss-modal-header">
+                <div>
+                  <h3>{modalTitle}</h3>
+                  <p>Create or update the category cards shown in system settings.</p>
+                </div>
+                <button className="ss-modal-close" type="button" onClick={closeCategoryModal}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="ss-modal-grid">
+                <div className="ss-modal-field">
+                  <label htmlFor="category-name">Category Name</label>
+                  <input
+                    id="category-name"
+                    type="text"
+                    value={categoryForm.name}
+                    onChange={(event) => handleCategoryFormChange('name', event.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="ss-modal-field">
+                  <label htmlFor="category-count">Event Count</label>
+                  <input
+                    id="category-count"
+                    type="number"
+                    min="0"
+                    value={categoryForm.eventCount}
+                    onChange={(event) => handleCategoryFormChange('eventCount', event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="ss-modal-field">
+                <label htmlFor="category-description">Description</label>
+                <textarea
+                  id="category-description"
+                  rows="4"
+                  value={categoryForm.description}
+                  onChange={(event) => handleCategoryFormChange('description', event.target.value)}
+                />
+              </div>
+
+              <div className="ss-modal-field">
+                <label htmlFor="category-icon">Bootstrap Icon Class</label>
+                <input
+                  id="category-icon"
+                  type="text"
+                  value={categoryForm.iconClass}
+                  onChange={(event) => handleCategoryFormChange('iconClass', event.target.value)}
+                />
+                <span className="ss-help-text">Example: `bi-pc-display`, `bi-music-note-beamed`, `bi-dribbble`.</span>
+              </div>
+
+              <div className="ss-modal-actions">
+                <button className="ss-btn-secondary" type="button" onClick={closeCategoryModal}>
+                  Cancel
+                </button>
+                <button className="ss-btn-save" type="button" onClick={handleSaveCategory}>
+                  Save Category
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

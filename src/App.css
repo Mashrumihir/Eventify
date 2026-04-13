@@ -67,13 +67,19 @@
   padding: 28px 24px 40px;
 }
 
+.page-content.admin-page-shell {
+  padding: 0;
+  background: #dce7f5;
+}
+
 .page-content > * {
   width: min(1180px, 100%);
   margin: 0 auto;
 }
 
 .page-content > .ps-layout-main,
-.page-content > .org-page-layout {
+.page-content > .org-page-layout,
+.page-content > .admin-page-layout {
   width: 100%;
   margin: 0;
 }
