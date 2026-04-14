@@ -99,8 +99,17 @@ It connects with backend APIs to manage events, bookings, and user data efficien
 
 ---
 
-## 🚀 How to Run  
-
 1. Clone the repository:
-```bash
-git clone https://github.com/Mashrumihir/Eventify.git
+   ```bash
+   git clone https://github.com/Mashrumihir/Eventify.git  
+2. Navigate to project:
+   ```bash
+   cd Eventify
+3. Install dependencies:
+   ```bash
+   npm install
+4. Start development server:
+   ```bash
+   npm start
+5. Open browser:
+
