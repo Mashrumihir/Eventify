@@ -86,9 +86,6 @@ It connects with backend APIs to manage events, bookings, and user data efficien
 
 ---
 
-
----
-
 ## 🛠️ Technologies Used  
 - React.js  
 - JavaScript (ES6+)  
@@ -112,4 +109,47 @@ It connects with backend APIs to manage events, bookings, and user data efficien
    ```bash
    npm start
 5. Open browser:
+   ```bash
+   http://localhost:3000
+   ```
+
+   ---
+   
+## 📷 Screenshots
+
+---
+
+## 👨‍💻 Authors  
+
+### 👤 Mihir Mashru  
+**Role:** Admin  
+- React Developer  
+- UI/UX Design  
+- Dashboard & Charts  
+
+---
+
+### 👤 Krupansi Kachhadiya  
+**Role:** Organizer  
+- API Integration  
+- Search & Filters  
+- Validation  
+
+---
+
+### 👤 Meet Modhvadiya  
+**Role:** Attendee  
+- Backend & Database  
+- API Development  
+- Authentication  
+
+---
+
+## ⭐ Future Improvements  
+
+- 💳 Payment Integration (Razorpay / Stripe)  
+- 📧 Email Notifications (SMTP / Firebase)  
+- 📱 Mobile Optimization  
+- 📊 Advanced Analytics Dashboard  
+- 🌐 Deployment (Vercel / Netlify)  
 
