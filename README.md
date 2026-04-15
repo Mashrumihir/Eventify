@@ -110,7 +110,7 @@ It connects with backend APIs to manage events, bookings, and user data efficien
    npm start
 5. Open browser:
    ```bash
-   http://localhost:3000
+   http://localhost:5173/
    ```
 
    ---
