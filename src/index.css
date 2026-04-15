@@ -1,5 +1,51 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-primary: #2196f3;
+  --color-primary-dark: #1976d2;
+  --color-brand-sky: #29b6f6;
+  --color-brand-cyan: #22d3ee;
+
+  --color-app-bg: #f4f6f9;
+  --color-app-white: #ffffff;
+  --color-sidebar-bg: #ffffff;
+
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  --color-border-default: #e5e7eb;
+  --color-border-light: #f3f4f6;
+
+  --color-success: #22c55e;
+  --color-success-bg: #dcfce7;
+  --color-success-icon: #16a34a;
+
+  --color-danger: #ef4444;
+  --color-danger-bg: #fee2e2;
+  --color-danger-icon: #dc2626;
+
+  --color-accent-purple: #8b5cf6;
+  --color-accent-purple-bg: #ede9fe;
+  --color-accent-purple-icon: #7c3aed;
+
+  --color-info-bg: #dbeafe;
+  --color-info-icon: #2563eb;
+  --color-warning: #f59e0b;
+
+  --spacing-sidebar: 236px;
+
+  --radius-app-sm: 6px;
+  --radius-app-md: 10px;
+  --radius-app-lg: 14px;
+  --radius-app-xl: 20px;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
 /* ─── Reset & Base ─────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
