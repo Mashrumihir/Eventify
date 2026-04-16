@@ -55,17 +55,22 @@
   justify-content: center;
 }
 
+.stat-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .stat-icon--blue   { background: var(--color-blue-bg);   }
-.stat-icon--blue svg   { stroke: var(--color-blue-icon);   }
+.stat-icon--blue svg   { stroke: var(--color-blue-icon); color: var(--color-blue-icon); }
 
 .stat-icon--green  { background: var(--color-green-bg);  }
-.stat-icon--green svg  { stroke: var(--color-green-icon);  }
+.stat-icon--green svg  { stroke: var(--color-green-icon); color: var(--color-green-icon); }
 
 .stat-icon--red    { background: var(--color-red-bg);    }
-.stat-icon--red svg    { stroke: var(--color-red-icon);    }
+.stat-icon--red svg    { stroke: var(--color-red-icon); color: var(--color-red-icon); }
 
 .stat-icon--purple { background: var(--color-purple-bg); }
-.stat-icon--purple svg { stroke: var(--color-purple-icon); }
+.stat-icon--purple svg { stroke: var(--color-purple-icon); color: var(--color-purple-icon); fill: currentColor; }
 
 .stat-value {
   font-size: 30px;

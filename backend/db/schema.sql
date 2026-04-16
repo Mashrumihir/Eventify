@@ -23,7 +23,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
-    CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+    CREATE TYPE payment_status AS ENUM ('pending', 'success', 'failed', 'refunded', 'partially_refunded');
   END IF;
 END $$;
 
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS payments (
   provider VARCHAR(80) DEFAULT 'manual',
   payment_reference VARCHAR(80),
   amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  status payment_status NOT NULL DEFAULT 'paid',
+  payment_status payment_status NOT NULL DEFAULT 'success',
   paid_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

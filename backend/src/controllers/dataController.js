@@ -501,7 +501,7 @@ export async function getOrganizerDashboard(req, res) {
          bi.quantity,
          p.amount,
          p.paid_at,
-         p.status
+         p.payment_status AS status
        FROM bookings b
        JOIN events e ON e.id = b.event_id
        JOIN users u ON u.id = b.user_id
@@ -542,7 +542,7 @@ export async function getAdminDashboard(_req, res) {
          COUNT(*) AS total_users,
          COUNT(*) FILTER (WHERE role = 'organizer') AS total_organizers,
          (SELECT COUNT(*) FROM events) AS total_events,
-         (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'paid') AS revenue_summary
+         (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payment_status = 'success') AS revenue_summary
        FROM users`
     ),
     query(
@@ -622,14 +622,24 @@ export async function createUser(req, res) {
     return res.status(400).json({ message: 'Name, email, and password are required.' });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
   const passwordHash = await bcrypt.hash(password, 10);
   const dbRole = toDbRole(role);
+  const duplicate = await query('SELECT id FROM users WHERE email = $1 LIMIT 1', [normalizedEmail]);
+
+  if (duplicate.rowCount > 0) {
+    return res.status(409).json({ message: 'A user with this email already exists.' });
+  }
 
   const result = await query(
     `INSERT INTO users (full_name, email, password_hash, role, status)
      VALUES ($1, $2, $3, $4, 'active')
      RETURNING id, full_name, email, role, status, created_at`,
-    [name.trim(), email.trim().toLowerCase(), passwordHash, dbRole]
+    [name.trim(), normalizedEmail, passwordHash, dbRole]
   );
 
   await query(

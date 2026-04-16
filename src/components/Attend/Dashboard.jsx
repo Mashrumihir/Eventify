@@ -2,11 +2,73 @@ import { useEffect, useState } from 'react'
 import './css/Dashboard.css'
 import { fetchAttendeeDashboard } from '../../services/dataService'
 
+function BookingIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 7h16a2 2 0 0 1 2 2v3H2V9a2 2 0 0 1 2-2z" />
+      <path d="M2 12h20v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" />
+      <path d="M7 7V5a1 1 0 0 1 1-1h1" />
+      <path d="M17 7V5a1 1 0 0 0-1-1h-1" />
+      <path d="M8 15h3" />
+    </svg>
+  )
+}
+
+function CalendarCheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <path d="m9 15 2 2 4-4" />
+    </svg>
+  )
+}
+
+function CancelIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9 9 6 6" />
+      <path d="m15 9-6 6" />
+    </svg>
+  )
+}
+
+function BookmarkIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+      <path d="M7 4.5A2.5 2.5 0 0 1 9.5 2h5A2.5 2.5 0 0 1 17 4.5V22l-5-3-5 3V4.5Z" />
+    </svg>
+  )
+}
+
+function CalendarMetaIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  )
+}
+
+function LocationIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10Z" />
+      <circle cx="12" cy="11" r="2.5" />
+    </svg>
+  )
+}
+
 function formatDateParts(value) {
   const date = new Date(value)
 
   return {
-    date: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+    date: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
     time: date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }),
   }
 }
@@ -26,7 +88,6 @@ function StatCard({ stat }) {
 }
 
 function EventCard({ event, actionLabel = 'View Details' }) {
-  const soldPercent = Math.min(100, event.progressPercent || 0)
   const { date, time } = formatDateParts(event.date)
 
   return (
@@ -38,22 +99,18 @@ function EventCard({ event, actionLabel = 'View Details' }) {
       <div className="upcoming-info">
         <h3 className="upcoming-title">{event.title}</h3>
         <div className="upcoming-meta">
-          <span className="upcoming-meta-item">{date} • {time}</span>
-          <span className="upcoming-meta-item">{event.location}</span>
-        </div>
-        <div className="upcoming-rating">
-          <span className="upcoming-rating-score">{event.rating.toFixed(1)}</span>
-          <span className="upcoming-rating-reviews">({event.reviews} reviews)</span>
-        </div>
-        <div className="upcoming-sales">
-          <div className="upcoming-sales-text">Tickets Sold: {event.ticketsSold} / {event.capacity}</div>
-          <div className="upcoming-sales-track">
-            <div className="upcoming-sales-fill" style={{ width: `${soldPercent}%` }} />
-          </div>
+          <span className="upcoming-meta-item">
+            <CalendarMetaIcon />
+            <span>{date} · {time}</span>
+          </span>
+          <span className="upcoming-meta-item">
+            <LocationIcon />
+            <span>{event.location}</span>
+          </span>
         </div>
         <div className="upcoming-footer">
           <div className="upcoming-price">{formatPrice(event.price)}</div>
-          <button className="upcoming-view-btn">{actionLabel}</button>
+          <button className="upcoming-view-btn" type="button">{actionLabel}</button>
         </div>
       </div>
     </div>
@@ -114,28 +171,28 @@ export default function Dashboard({ currentUser }) {
       value: data.stats.totalBookings,
       label: 'Total Bookings',
       color: 'blue',
-      icon: <span>B</span>,
+      icon: <BookingIcon />,
     },
     {
       id: 'upcoming-events',
       value: data.stats.upcomingEvents,
       label: 'Upcoming Events',
       color: 'green',
-      icon: <span>U</span>,
+      icon: <CalendarCheckIcon />,
     },
     {
       id: 'canceled',
       value: data.stats.cancelled,
       label: 'Canceled',
       color: 'red',
-      icon: <span>C</span>,
+      icon: <CancelIcon />,
     },
     {
       id: 'saved-events',
       value: data.stats.savedEvents,
       label: 'Saved Events',
       color: 'purple',
-      icon: <span>S</span>,
+      icon: <BookmarkIcon />,
     },
   ]
 
@@ -143,7 +200,7 @@ export default function Dashboard({ currentUser }) {
     <div className="dashboard">
       <div className="dashboard-welcome">
         <h1 className="welcome-heading">Welcome back, {currentUser?.name || 'Guest'}!</h1>
-        <p className="welcome-sub">Your attendee dashboard is now reading live data from the database.</p>
+        <p className="welcome-sub">Your attendee dashboard is reading live data from the database.</p>
       </div>
 
       {error ? <p className="me-status-message">{error}</p> : null}

@@ -8,7 +8,10 @@ This folder contains the Express and PostgreSQL backend for Eventify login and r
 - `.env` - local database connection settings
 - `.env.example` - sample environment variables
 - `db/schema.sql` - PostgreSQL table creation SQL
+- `db/sync.sql` - PostgreSQL schema repair SQL for existing databases
 - `scripts/init-db.js` - creates database tables from `db/schema.sql`
+- `scripts/sync-db.js` - syncs an existing database to the current schema
+- `scripts/seed-attendee-demo.js` - inserts attendee dashboard demo data
 - `src/config/env.js` - loads backend environment variables
 - `src/config/db.js` - PostgreSQL connection pool
 - `src/controllers/authController.js` - register and login database logic
@@ -30,6 +33,18 @@ cd backend
 npm install
 npm run db:init
 npm run dev
+```
+
+If you already have a local database from an older version, run this once before starting:
+
+```bash
+npm run db:sync
+```
+
+If you want demo attendee bookings, wishlist, and upcoming events for the attendee dashboard:
+
+```bash
+npm run db:seed-attendee
 ```
 
 Backend API:
