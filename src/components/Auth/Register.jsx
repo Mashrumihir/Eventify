@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './css/Register.css'
 
-export default function Register({ onRegister, onNavigateToLogin, onSelectRole }) {
+export default function Register({ onRegister, onNavigateToLogin }) {
   const [role, setRole] = useState('attend') // 'attend', 'organizer', 'admin'
   const [formData, setFormData] = useState({
     name: '',
@@ -19,7 +19,7 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
@@ -30,13 +30,18 @@ export default function Register({ onRegister, onNavigateToLogin, onSelectRole }
     setError('')
     setIsSubmitting(true)
 
-    onRegister({
-      name: formData.name || 'Eventify User',
-      email: formData.email,
-      role,
-    })
-
-    setIsSubmitting(false)
+    try {
+      await onRegister({
+        name: formData.name || 'Eventify User',
+        email: formData.email,
+        password: formData.password,
+        role,
+      })
+    } catch (submitError) {
+      setError(submitError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

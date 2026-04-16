@@ -1,18 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './css/UserManagement.css'
-
-const INITIAL_USERS = [
-  { id: 1, name: 'Yash', email: 'mmashru426@rku.ac.in', password: 'yash2026', role: 'Attend', status: 'active', joinDate: '2026-04-12', bookings: 0 },
-  { id: 2, name: 'Meet', email: 'meet2@gmail.com', password: 'meet2026', role: 'Attend', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 3, name: 'Meet', email: 'meet1@gmail.com', password: 'meet2025', role: 'Attend', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 4, name: 'Meet', email: 'meet@gmail.com', password: 'meet2024', role: 'Attend', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 5, name: 'Krupansi', email: 'krupansi2@gmail.com', password: 'krup2026', role: 'Organizer', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 6, name: 'Krupansi', email: 'krupansi1@gmail.com', password: 'krup2025', role: 'Organizer', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 7, name: 'Krupansi', email: 'krupansi@gmail.com', password: 'krup2024', role: 'Organizer', status: 'active', joinDate: '2026-04-11', bookings: 0 },
-  { id: 8, name: 'Mihir Mashru', email: 'mashrumihir17@gmail.com', password: 'mihir17', role: 'Admin', status: 'active', joinDate: '2026-04-06', bookings: 0 },
-  { id: 9, name: 'Mihir Mashru', email: 'mashrumihir16@gmail.com', password: 'mihir16', role: 'Admin', status: 'active', joinDate: '2026-04-06', bookings: 1 },
-  { id: 10, name: 'Admin Ops', email: 'ops@eventify.com', password: 'ops2026', role: 'Admin', status: 'active', joinDate: '2026-04-05', bookings: 0 },
-]
+import { createUser, fetchUsers, removeUser, updateUserStatus } from '../../services/dataService'
 
 const ROLE_TABS = [
   { id: 'All', label: 'All Users' },
@@ -30,10 +18,9 @@ const getInitials = (name) =>
     .join('')
 
 export default function UserManagement() {
-  const [users, setUsers] = useState(INITIAL_USERS)
+  const [users, setUsers] = useState([])
   const [activeTab, setActiveTab] = useState('All')
   const [searchValue, setSearchValue] = useState('')
-  const [visiblePasswords, setVisiblePasswords] = useState({})
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [newUser, setNewUser] = useState({
     name: '',
@@ -41,13 +28,38 @@ export default function UserManagement() {
     password: '',
     role: 'Attend',
   })
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadUsers() {
+      try {
+        setError('')
+        const response = await fetchUsers()
+
+        if (isMounted) {
+          setUsers(response.users)
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setError(loadError.message)
+        }
+      }
+    }
+
+    loadUsers()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const tabCounts = useMemo(
     () => ({
       All: users.length,
-      Attend: users.filter((user) => user.role === 'Attend').length,
-      Organizer: users.filter((user) => user.role === 'Organizer').length,
-      Admin: users.filter((user) => user.role === 'Admin').length,
+      Attend: users.filter((user) => user.role === 'attend').length,
+      Organizer: users.filter((user) => user.role === 'organizer').length,
+      Admin: users.filter((user) => user.role === 'admin').length,
     }),
     [users]
   )
@@ -56,7 +68,8 @@ export default function UserManagement() {
     const query = searchValue.trim().toLowerCase()
 
     return users.filter((user) => {
-      const matchesTab = activeTab === 'All' || user.role === activeTab
+      const roleLabel = user.role === 'attend' ? 'Attend' : user.role.charAt(0).toUpperCase() + user.role.slice(1)
+      const matchesTab = activeTab === 'All' || roleLabel === activeTab
       const matchesSearch =
         !query ||
         user.name.toLowerCase().includes(query) ||
@@ -66,57 +79,41 @@ export default function UserManagement() {
     })
   }, [activeTab, searchValue, users])
 
-  const togglePasswordVisibility = (userId) => {
-    setVisiblePasswords((current) => ({
-      ...current,
-      [userId]: !current[userId],
-    }))
-  }
-
-  const handleBlockToggle = (userId) => {
-    setUsers((current) =>
-      current.map((user) =>
-        user.id === userId
-          ? { ...user, status: user.status === 'active' ? 'blocked' : 'active' }
-          : user
+  const handleBlockToggle = async (userId, currentStatus) => {
+    try {
+      const nextStatus = currentStatus === 'active' ? 'blocked' : 'active'
+      await updateUserStatus(userId, nextStatus)
+      setUsers((current) =>
+        current.map((user) => (user.id === userId ? { ...user, status: nextStatus } : user))
       )
-    )
+    } catch (updateError) {
+      setError(updateError.message)
+    }
   }
 
-  const handleDeleteUser = (userId) => {
-    setUsers((current) => current.filter((user) => user.id !== userId))
+  const handleDeleteUser = async (userId) => {
+    try {
+      await removeUser(userId)
+      setUsers((current) => current.filter((user) => user.id !== userId))
+    } catch (deleteError) {
+      setError(deleteError.message)
+    }
   }
 
-  const handleAddUser = () => {
-    const trimmedName = newUser.name.trim()
-    const trimmedEmail = newUser.email.trim()
-    const trimmedPassword = newUser.password.trim()
-
-    if (!trimmedName || !trimmedEmail || !trimmedPassword) {
-      return
+  const handleAddUser = async () => {
+    try {
+      const response = await createUser(newUser)
+      setUsers((current) => [response.user, ...current])
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        role: 'Attend',
+      })
+      setIsModalOpen(false)
+    } catch (createError) {
+      setError(createError.message)
     }
-
-    const createdUser = {
-      id: Date.now(),
-      name: trimmedName,
-      email: trimmedEmail,
-      password: trimmedPassword,
-      role: newUser.role,
-      status: 'active',
-      joinDate: new Date().toISOString().slice(0, 10),
-      bookings: 0,
-    }
-
-    setUsers((current) => [createdUser, ...current])
-    setActiveTab(newUser.role)
-    setSearchValue('')
-    setNewUser({
-      name: '',
-      email: '',
-      password: '',
-      role: 'Attend',
-    })
-    setIsModalOpen(false)
   }
 
   return (
@@ -128,7 +125,8 @@ export default function UserManagement() {
 
       <div className="admin-content-area">
         <h2 className="admin-section-title">User Management</h2>
-        <p className="admin-section-subtitle">Manage and monitor all registered users on the platform.</p>
+        <p className="admin-section-subtitle">These records are being read from the `users` table.</p>
+        {error ? <p className="me-status-message">{error}</p> : null}
 
         <div className="um-toolbar">
           <div className="um-tabs">
@@ -156,10 +154,6 @@ export default function UserManagement() {
             </div>
 
             <button className="um-new-user-btn" type="button" onClick={() => setIsModalOpen(true)}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
               New User
             </button>
           </div>
@@ -172,7 +166,7 @@ export default function UserManagement() {
                 <tr>
                   <th>User</th>
                   <th>Email</th>
-                  <th>Password</th>
+                  <th>Role</th>
                   <th>Status</th>
                   <th>Join Date</th>
                   <th>Bookings</th>
@@ -189,22 +183,15 @@ export default function UserManagement() {
                       </div>
                     </td>
                     <td className="um-email">{user.email}</td>
-                    <td>
-                      <div className="um-password-cell">
-                        <span>{visiblePasswords[user.id] ? user.password : '********'}</span>
-                        <button type="button" className="um-inline-btn" onClick={() => togglePasswordVisibility(user.id)}>
-                          Show
-                        </button>
-                      </div>
-                    </td>
+                    <td>{user.role}</td>
                     <td>
                       <span className={`um-status ${user.status}`}>{user.status}</span>
                     </td>
-                    <td className="um-date">{user.joinDate}</td>
+                    <td className="um-date">{new Date(user.joinDate).toLocaleDateString('en-IN')}</td>
                     <td className="um-bookings">{user.bookings}</td>
                     <td>
                       <div className="um-actions">
-                        <button type="button" className="um-inline-btn" onClick={() => handleBlockToggle(user.id)}>
+                        <button type="button" className="um-inline-btn" onClick={() => handleBlockToggle(user.id, user.status)}>
                           {user.status === 'active' ? 'Block' : 'Unblock'}
                         </button>
                         <button type="button" className="um-inline-btn um-delete-btn" onClick={() => handleDeleteUser(user.id)}>
@@ -239,23 +226,12 @@ export default function UserManagement() {
                   value={newUser.email}
                   onChange={(event) => setNewUser((current) => ({ ...current, email: event.target.value }))}
                 />
-
-                <div className="um-password-input">
-                  <input
-                    type={visiblePasswords.newUser ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={newUser.password}
-                    onChange={(event) => setNewUser((current) => ({ ...current, password: event.target.value }))}
-                  />
-                  <button
-                    type="button"
-                    className="um-inline-btn"
-                    onClick={() => setVisiblePasswords((current) => ({ ...current, newUser: !current.newUser }))}
-                  >
-                    Show
-                  </button>
-                </div>
-
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={newUser.password}
+                  onChange={(event) => setNewUser((current) => ({ ...current, password: event.target.value }))}
+                />
                 <select
                   value={newUser.role}
                   onChange={(event) => setNewUser((current) => ({ ...current, role: event.target.value }))}
@@ -271,7 +247,7 @@ export default function UserManagement() {
                   Cancel
                 </button>
                 <button type="button" className="um-new-user-btn" onClick={handleAddUser}>
-                  Add User
+                  Create
                 </button>
               </div>
             </div>

@@ -12,8 +12,6 @@ import Notifications from './components/Attend/Notifications'
 import Wishlist from './components/Attend/Wishlist'
 import Reviews from './components/Attend/Reviews'
 import ProfileSettings from './components/Attend/ProfileSettings'
-
-// Organizer Imports
 import OrgSidebar from './components/Organizer/Sidebar'
 import OrgDashboard from './components/Organizer/Dashboard'
 import OrgCreateEvent from './components/Organizer/CreateEvent'
@@ -22,8 +20,6 @@ import OrgBookings from './components/Organizer/Bookings'
 import OrgPayments from './components/Organizer/Payments'
 import OrgAnnouncements from './components/Organizer/Announcements'
 import OrgProfile from './components/Organizer/Profile'
-
-// Admin Imports
 import AdminSidebar from './components/Admin/Sidebar'
 import AdminDashboard from './components/Admin/Dashboard'
 import UserManagement from './components/Admin/UserManagement'
@@ -34,8 +30,6 @@ import AdminNotifications from './components/Admin/Notifications'
 import AdminReviews from './components/Admin/ReviewsRatings'
 import ContactMessages from './components/Admin/ContactMessages'
 import NewsletterSubscribers from './components/Admin/NewsletterSubscribers'
-
-// Auth Imports
 import Login from './components/Auth/Login'
 import Register from './components/Auth/Register'
 import ForgotPassword from './components/Auth/ForgotPassword'
@@ -50,22 +44,17 @@ import FAQ from './components/Home/FAQ/FAQ'
 import Pricing from './components/Home/Pricing/Pricing'
 import PrivacyPolicy from './components/Home/PrivacyPolicy/PrivacyPolicy'
 import TermsOfService from './components/Home/TermsOfService/TermsOfService'
+import { useAuth } from './context/AuthContext'
 
 export default function App() {
-  const [appMode, setAppMode] = useState('organizer') // 'attend' or 'organizer'
+  const { user, isAuthenticated, isBootstrapped, login, register, logout } = useAuth()
+  const [appMode, setAppMode] = useState(() => getModeFromRole(user?.role))
   const [activePage, setActivePage] = useState('dashboard')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [authMode, setAuthMode] = useState('home') // 'home', 'login' or 'register'
-  const [currentUser, setCurrentUser] = useState(null)
+  const [authMode, setAuthMode] = useState('home')
   const [organizerEditorState, setOrganizerEditorState] = useState({ mode: 'create', eventData: null })
 
-  const setModeFromRole = (role) => {
-    setAppMode(role === 'attend' ? 'attend' : role === 'organize' || role === 'organizer' ? 'organizer' : 'admin')
-  }
-
   const handleLogout = () => {
-    setCurrentUser(null)
-    setIsLoggedIn(false)
+    logout()
     setAuthMode('login')
     setActivePage('dashboard')
   }
@@ -87,11 +76,24 @@ export default function App() {
     if (appMode === 'organizer') {
       switch (activePage) {
         case 'dashboard':
-          return <OrgDashboard />
+          return <OrgDashboard currentUser={user} />
         case 'createEvent':
-          return <OrgCreateEvent mode={organizerEditorState.mode} eventData={organizerEditorState.eventData} onNavigate={handleOrganizerNavigate} />
+          return (
+            <OrgCreateEvent
+              currentUser={user}
+              mode={organizerEditorState.mode}
+              eventData={organizerEditorState.eventData}
+              onNavigate={handleOrganizerNavigate}
+            />
+          )
         case 'manageEvents':
-          return <OrgManageEvents onNavigate={handleOrganizerNavigate} onEditEvent={handleOrganizerEditEvent} />
+          return (
+            <OrgManageEvents
+              currentUser={user}
+              onNavigate={handleOrganizerNavigate}
+              onEditEvent={handleOrganizerEditEvent}
+            />
+          )
         case 'bookings':
           return <OrgBookings />
         case 'payments':
@@ -103,7 +105,9 @@ export default function App() {
         default:
           return <PlaceholderPage title="Organizer Section" />
       }
-    } else if (appMode === 'admin') {
+    }
+
+    if (appMode === 'admin') {
       switch (activePage) {
         case 'dashboard':
           return <AdminDashboard />
@@ -126,43 +130,45 @@ export default function App() {
         default:
           return <PlaceholderPage title="Admin Section" />
       }
-    } else {
-      switch (activePage) {
-        case 'dashboard':
-          return <Dashboard />
-        case 'browse':
-          return <BrowseEvents onNavigate={setActivePage} />
-        case 'eventDetails':
-          return <EventDetails onNavigate={setActivePage} />
-        case 'payment':
-          return <Payment onNavigate={setActivePage} />
-        case 'paymentSuccess':
-          return <PaymentSuccess onNavigate={setActivePage} />
-        case 'payments':
-          return <Payments />
-        case 'taxInvoice':
-          return <TaxInvoice onNavigate={setActivePage} />
-        case 'bookings':
-          return <MyBookings onNavigate={setActivePage} />
-        case 'wishlist':
-          return <Wishlist />
-        case 'notifications':
-          return <Notifications />
-        case 'reviews':
-          return <Reviews />
-        case 'profile':
-          return <ProfileSettings />
-        default:
-          return <Dashboard />
-      }
+    }
+
+    switch (activePage) {
+      case 'dashboard':
+        return <Dashboard currentUser={user} />
+      case 'browse':
+        return <BrowseEvents currentUser={user} onNavigate={setActivePage} />
+      case 'eventDetails':
+        return <EventDetails onNavigate={setActivePage} />
+      case 'paymentSuccess':
+        return <PaymentSuccess onNavigate={setActivePage} />
+      case 'payments':
+        return <Payments />
+      case 'taxInvoice':
+        return <TaxInvoice onNavigate={setActivePage} />
+      case 'bookings':
+        return <MyBookings onNavigate={setActivePage} />
+      case 'wishlist':
+        return <Wishlist />
+      case 'notifications':
+        return <Notifications />
+      case 'reviews':
+        return <Reviews />
+      case 'profile':
+        return <ProfileSettings />
+      default:
+        return <Dashboard currentUser={user} />
     }
   }
 
-  if (!isLoggedIn) {
+  if (!isBootstrapped) {
+    return <PlaceholderPage title="Loading Eventify" />
+  }
+
+  if (!isAuthenticated) {
     if (authMode === 'home') {
       return (
-        <Home 
-          onNavigateToLogin={() => setAuthMode('login')} 
+        <Home
+          onNavigateToLogin={() => setAuthMode('login')}
           onNavigateToRegister={() => setAuthMode('register')}
           onNavigateToApp={() => setAuthMode('login')}
           onNavigateToContact={() => setAuthMode('contact')}
@@ -175,16 +181,15 @@ export default function App() {
         />
       )
     }
+
     if (authMode === 'termsOfService') {
-      return (
-        <TermsOfService onBack={() => setAuthMode('home')} />
-      )
+      return <TermsOfService onBack={() => setAuthMode('home')} />
     }
+
     if (authMode === 'privacyPolicy') {
-      return (
-        <PrivacyPolicy onBack={() => setAuthMode('home')} />
-      )
+      return <PrivacyPolicy onBack={() => setAuthMode('home')} />
     }
+
     if (authMode === 'pricing') {
       return (
         <Pricing
@@ -194,19 +199,15 @@ export default function App() {
         />
       )
     }
+
     if (authMode === 'faq') {
-      return (
-        <FAQ
-          onBack={() => setAuthMode('home')}
-          onContact={() => setAuthMode('contact')}
-        />
-      )
+      return <FAQ onBack={() => setAuthMode('home')} onContact={() => setAuthMode('contact')} />
     }
+
     if (authMode === 'partnerEvents') {
-      return (
-        <PartnerEvents onBack={() => setAuthMode('home')} />
-      )
+      return <PartnerEvents onBack={() => setAuthMode('home')} />
     }
+
     if (authMode === 'about') {
       return (
         <About
@@ -216,56 +217,61 @@ export default function App() {
         />
       )
     }
+
     if (authMode === 'contact') {
-      return (
-        <Contact onBack={() => setAuthMode('home')} />
-      )
-    }
-    if (authMode === 'register') {
-      return <Register 
-        onNavigateToLogin={() => setAuthMode('login')}
-        onRegister={(user) => {
-          setCurrentUser(user)
-          setModeFromRole(user.role)
-          setActivePage('dashboard')
-          setIsLoggedIn(true)
-        }} 
-      />
-    }
-    if (authMode === 'forgotPassword') {
-      return <ForgotPassword 
-        onBack={() => setAuthMode('login')} 
-        onSubmit={() => setAuthMode('verifyEmail')} 
-      />
-    }
-    if (authMode === 'verifyEmail') {
-      return <VerifyEmail 
-        onBack={() => setAuthMode('login')}
-        onSubmit={() => setAuthMode('setNewPassword')}
-      />
-    }
-    if (authMode === 'setNewPassword') {
-      return <SetNewPassword 
-        onSubmit={() => setAuthMode('emailVerified')}
-      />
-    }
-    if (authMode === 'emailVerified') {
-      return <EmailVerified 
-        onContinue={() => setAuthMode('login')}
-        onGoHome={() => setAuthMode('home')}
-      />
+      return <Contact onBack={() => setAuthMode('home')} />
     }
 
-    return <Login 
-      onLogin={(user) => {
-        setCurrentUser(user)
-        setModeFromRole(user.role)
-        setActivePage('dashboard')
-        setIsLoggedIn(true)
-      }} 
-      onNavigateToRegister={() => setAuthMode('register')} 
-      onNavigateToForgot={() => setAuthMode('forgotPassword')}
-    />
+    if (authMode === 'register') {
+      return (
+        <Register
+          onNavigateToLogin={() => setAuthMode('login')}
+          onRegister={async (payload) => {
+            const nextUser = await register(payload)
+            setAppMode(getModeFromRole(nextUser.role))
+            setActivePage('dashboard')
+          }}
+        />
+      )
+    }
+
+    if (authMode === 'forgotPassword') {
+      return <ForgotPassword onBack={() => setAuthMode('login')} onSubmit={() => setAuthMode('verifyEmail')} />
+    }
+
+    if (authMode === 'verifyEmail') {
+      return (
+        <VerifyEmail
+          onBack={() => setAuthMode('login')}
+          onSubmit={() => setAuthMode('setNewPassword')}
+        />
+      )
+    }
+
+    if (authMode === 'setNewPassword') {
+      return <SetNewPassword onSubmit={() => setAuthMode('emailVerified')} />
+    }
+
+    if (authMode === 'emailVerified') {
+      return (
+        <EmailVerified
+          onContinue={() => setAuthMode('login')}
+          onGoHome={() => setAuthMode('home')}
+        />
+      )
+    }
+
+    return (
+      <Login
+        onLogin={async (payload) => {
+          const nextUser = await login(payload)
+          setAppMode(getModeFromRole(nextUser.role))
+          setActivePage('dashboard')
+        }}
+        onNavigateToRegister={() => setAuthMode('register')}
+        onNavigateToForgot={() => setAuthMode('forgotPassword')}
+      />
+    )
   }
 
   return (
@@ -277,69 +283,80 @@ export default function App() {
       ) : (
         <Sidebar activePage={activePage} onNavigate={setActivePage} onLogout={handleLogout} />
       )}
+
       <div className="main-wrapper">
-        {/* Header */}
         {appMode !== 'admin' && (
-        <header className="app-header">
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button 
-              onClick={() => {
-                const nextMode = appMode === 'attend' ? 'organizer' : appMode === 'organizer' ? 'admin' : 'attend';
-                setAppMode(nextMode);
-                setActivePage('dashboard');
-              }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                background: '#f8fafc',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '13px',
-                color: '#334155'
-              }}
-            >
-              Switch to {appMode === 'attend' ? 'Organizer' : appMode === 'organizer' ? 'Admin' : 'Attend'} View
-            </button>
-            <div className="user-profile">
-              <div className="user-avatar">{currentUser?.name?.slice(0, 2).toUpperCase() || 'EV'}</div>
-              <span className="user-name">{currentUser?.name || 'Eventify User'}</span>
-              <span className="chevron-down">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </span>
+          <header className="app-header">
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <button
+                onClick={() => {
+                  const nextMode = appMode === 'attend' ? 'organizer' : appMode === 'organizer' ? 'admin' : 'attend'
+                  setAppMode(nextMode)
+                  setActivePage('dashboard')
+                }}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '13px',
+                  color: '#334155',
+                }}
+              >
+                Switch to {appMode === 'attend' ? 'Organizer' : appMode === 'organizer' ? 'Admin' : 'Attend'} View
+              </button>
+              <div className="user-profile">
+                <div className="user-avatar">{user?.name?.slice(0, 2).toUpperCase() || 'EV'}</div>
+                <span className="user-name">{user?.name || 'Eventify User'}</span>
+                <span className="chevron-down">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </span>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
         )}
-        {/* Page Content */}
-        <main className={`page-content ${appMode === 'admin' ? 'admin-page-shell' : ''}`}>
-          {renderPage()}
-        </main>
+
+        <main className={`page-content ${appMode === 'admin' ? 'admin-page-shell' : ''}`}>{renderPage()}</main>
       </div>
     </div>
   )
 }
 
-/* Placeholder for pages not yet built */
+function getModeFromRole(role) {
+  if (role === 'organizer' || role === 'organize') {
+    return 'organizer'
+  }
+
+  if (role === 'admin') {
+    return 'admin'
+  }
+
+  return 'attend'
+}
+
 function PlaceholderPage({ title }) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '60vh',
-      gap: '12px',
-      color: '#6b7280',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '60vh',
+        gap: '12px',
+        color: '#6b7280',
+      }}
+    >
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="3"/>
-        <path d="M9 9h6M9 13h4"/>
+        <rect x="3" y="3" width="18" height="18" rx="3" />
+        <path d="M9 9h6M9 13h4" />
       </svg>
       <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#374151' }}>{title}</h2>
-      <p style={{ fontSize: '14px' }}>This page is coming soon.</p>
+      <p style={{ fontSize: '14px' }}>Please wait a moment.</p>
     </div>
   )
 }

@@ -5,18 +5,23 @@ export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgo
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError('')
 
-    onLogin({
-      name: 'Eventify User',
-      email,
-      role: 'attend',
-    })
-
-    setIsSubmitting(false)
+    try {
+      await onLogin({
+        email,
+        password,
+      })
+    } catch (submitError) {
+      setError(submitError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -40,6 +45,8 @@ export default function Login({ onLogin, onNavigateToRegister, onNavigateToForgo
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error ? <p className="auth-error-text">{error}</p> : null}
+
           <div className="auth-input-group">
             <label>Email Address</label>
             <div className="auth-input-wrapper">

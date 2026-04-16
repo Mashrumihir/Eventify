@@ -1,62 +1,65 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FiEdit3, FiMapPin, FiPlusSquare, FiUploadCloud } from 'react-icons/fi'
 import './css/CreateEvent.css'
+import { createEvent, updateEvent } from '../../services/dataService'
 
 const INITIAL_FORM = {
   title: '',
   description: '',
-  date: '2026-04-12',
+  date: '',
   time: '',
   category: '',
   venue: '',
   ticketPrice: '0',
   quantity: '0',
-  earlyBirdEnabled: false,
-  earlyBirdPrice: '0',
   refundPolicy: '',
 }
 
-const DEFAULT_EVENT_STATE = {
-  ...INITIAL_FORM,
-  ticketType: 'Free',
-  bannerPreview: '',
-}
-
-const CATEGORY_OPTIONS = ['Technology', 'Music', 'Business', 'Art', 'Sports', 'Food']
+const CATEGORY_OPTIONS = ['Technology', 'Music', 'Business', 'Arts', 'Sports', 'Food']
 const REFUND_POLICIES = ['No Refunds', 'Up to 7 days before event', 'Up to 24 hours before event']
-const TICKET_TYPES = ['Free', 'Paid', 'VIP']
 
-export default function CreateEvent({ mode = 'create', eventData = null, onNavigate }) {
+export default function CreateEvent({ currentUser, mode = 'create', eventData = null, onNavigate }) {
   const isEditMode = mode === 'edit'
-  const normalizedEvent = eventData ? { ...DEFAULT_EVENT_STATE, ...eventData } : DEFAULT_EVENT_STATE
-  const [ticketType, setTicketType] = useState(normalizedEvent.ticketType)
-  const [form, setForm] = useState({ ...INITIAL_FORM, ...normalizedEvent })
+  const [form, setForm] = useState(INITIAL_FORM)
   const [bannerName, setBannerName] = useState('')
-  const [bannerPreview, setBannerPreview] = useState(normalizedEvent.bannerPreview || '')
+  const [bannerPreview, setBannerPreview] = useState('')
   const [actionMessage, setActionMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [status, setStatus] = useState('draft')
   const bannerInputRef = useRef(null)
 
   useEffect(() => {
-    const nextEvent = eventData ? { ...DEFAULT_EVENT_STATE, ...eventData } : DEFAULT_EVENT_STATE
+    if (!eventData) {
+      setForm(INITIAL_FORM)
+      setBannerPreview('')
+      setBannerName('')
+      setStatus('draft')
+      setActionMessage('')
+      return
+    }
 
-    setTicketType(nextEvent.ticketType)
-    setForm({ ...INITIAL_FORM, ...nextEvent })
+    const eventDate = new Date(eventData.date)
+
+    setForm({
+      title: eventData.title || '',
+      description: eventData.description || '',
+      date: eventDate.toISOString().slice(0, 10),
+      time: eventDate.toTimeString().slice(0, 5),
+      category: eventData.category || '',
+      venue: eventData.venue || '',
+      ticketPrice: String(eventData.price || 0),
+      quantity: String(eventData.capacity || 0),
+      refundPolicy: eventData.refundPolicy || '',
+    })
+    setBannerPreview(eventData.image || '')
     setBannerName('')
-    setBannerPreview(nextEvent.bannerPreview || '')
+    setStatus(eventData.status || 'draft')
     setActionMessage('')
-  }, [eventData, mode])
+  }, [eventData])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
-  }
-
-  const handleTicketTypeChange = (type) => {
-    setTicketType(type)
-    setForm((current) => ({
-      ...current,
-      ticketPrice: type === 'Free' ? '0' : current.ticketPrice === '0' ? '' : current.ticketPrice,
-    }))
   }
 
   const handleBannerSelect = (event) => {
@@ -68,15 +71,44 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
 
     setBannerName(file.name)
     setBannerPreview(URL.createObjectURL(file))
-    setActionMessage('Banner uploaded successfully.')
+    setActionMessage('Banner uploaded locally. Save the event to persist the record.')
   }
 
-  const handleDraft = () => {
-    setActionMessage(isEditMode ? 'Updated draft saved successfully.' : 'Event saved as draft.')
-  }
+  const submitEvent = async (nextStatus) => {
+    if (!currentUser?.id) {
+      return
+    }
 
-  const handlePublish = () => {
-    setActionMessage(isEditMode ? 'Event updated successfully.' : 'Event published successfully.')
+    try {
+      setIsSubmitting(true)
+      setActionMessage('')
+
+      const payload = {
+        organizerId: currentUser.id,
+        ...form,
+        bannerUrl: bannerPreview,
+        status: nextStatus,
+      }
+
+      if (isEditMode && eventData?.id) {
+        await updateEvent(eventData.id, payload)
+      } else {
+        await createEvent(payload)
+      }
+
+      setStatus(nextStatus)
+      setActionMessage(nextStatus === 'published' ? 'Event saved to the database and published.' : 'Draft saved to the database.')
+
+      if (!isEditMode) {
+        setForm(INITIAL_FORM)
+        setBannerPreview('')
+        setBannerName('')
+      }
+    } catch (submitError) {
+      setActionMessage(submitError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const mapQuery = form.venue.trim()
@@ -91,9 +123,7 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
         </div>
         <div>
           <h1 className="org-page-title">{isEditMode ? 'Edit Event' : 'Create Event'}</h1>
-          <p className="org-page-subtitle">
-            {isEditMode ? 'Update your event details.' : 'Fill in the details to create a new event.'}
-          </p>
+          <p className="org-page-subtitle">Store event records directly in the database.</p>
         </div>
       </div>
 
@@ -108,7 +138,7 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
 
           <div className="ce-form-group">
             <label htmlFor="event-description">Description</label>
-            <textarea id="event-description" name="description" rows="4" placeholder="Describe your event..." value={form.description} onChange={handleChange}></textarea>
+            <textarea id="event-description" name="description" rows="4" placeholder="Describe your event..." value={form.description} onChange={handleChange} />
           </div>
 
           <div className="ce-grid-2">
@@ -144,13 +174,7 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
 
           <div className="ce-map-preview">
             {mapQuery ? (
-              <iframe
-                className="ce-map-frame"
-                src={mapQuery}
-                title="Venue map preview"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+              <iframe className="ce-map-frame" src={mapQuery} title="Venue map preview" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
             ) : (
               <>
                 <FiMapPin size={22} />
@@ -174,9 +198,7 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
                 <p className="ce-upload-sub">{bannerName ? 'Banner ready to replace' : 'PNG, JPG or WEBP (max. 2MB)'}</p>
               </div>
 
-              {bannerPreview ? (
-                <img className="ce-banner-preview" src={bannerPreview} alt={bannerName || form.title || 'Event banner preview'} />
-              ) : null}
+              {bannerPreview ? <img className="ce-banner-preview" src={bannerPreview} alt={bannerName || form.title || 'Event banner preview'} /> : null}
             </button>
             <input ref={bannerInputRef} className="ce-hidden-input" type="file" accept=".png,.jpg,.jpeg,.webp" onChange={handleBannerSelect} />
           </div>
@@ -185,64 +207,16 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
         <section className="ce-section-card">
           <h3 className="ce-section-title">Ticket Configuration</h3>
 
-          <div className="ce-ticket-type-tabs">
-            {TICKET_TYPES.map((type) => (
-              <button
-                key={type}
-                className={ticketType === type ? 'active' : ''}
-                onClick={() => handleTicketTypeChange(type)}
-                type="button"
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-
           <div className="ce-grid-2">
             <div className="ce-form-group">
-              <label htmlFor="ticket-price">Ticket Price (₹)</label>
-              <input
-                id="ticket-price"
-                name="ticketPrice"
-                type="number"
-                min="0"
-                placeholder="0"
-                value={ticketType === 'Free' ? '0' : form.ticketPrice}
-                onChange={handleChange}
-                disabled={ticketType === 'Free'}
-              />
+              <label htmlFor="ticket-price">Ticket Price (\u20B9)</label>
+              <input id="ticket-price" name="ticketPrice" type="number" min="0" placeholder="0" value={form.ticketPrice} onChange={handleChange} />
             </div>
 
             <div className="ce-form-group">
               <label htmlFor="ticket-quantity">Available Quantity</label>
               <input id="ticket-quantity" name="quantity" type="number" min="0" placeholder="0" value={form.quantity} onChange={handleChange} />
             </div>
-          </div>
-
-          <div className="ce-form-group-flex">
-            <label htmlFor="early-bird-toggle">Early Bird Discount</label>
-            <button
-              id="early-bird-toggle"
-              className={`ce-toggle ${form.earlyBirdEnabled ? 'is-on' : ''}`}
-              onClick={() => setForm((current) => ({ ...current, earlyBirdEnabled: !current.earlyBirdEnabled }))}
-              type="button"
-            >
-              <div className="ce-toggle-knob"></div>
-            </button>
-          </div>
-
-          <div className="ce-form-group">
-            <label htmlFor="early-bird-price">Early Bird Price (₹)</label>
-            <input
-              id="early-bird-price"
-              name="earlyBirdPrice"
-              type="number"
-              min="0"
-              placeholder="0"
-              value={form.earlyBirdPrice}
-              onChange={handleChange}
-              disabled={!form.earlyBirdEnabled}
-            />
           </div>
 
           <div className="ce-form-group">
@@ -260,9 +234,11 @@ export default function CreateEvent({ mode = 'create', eventData = null, onNavig
           {isEditMode ? (
             <button className="ce-btn-draft" onClick={() => onNavigate?.('manageEvents')} type="button">Cancel</button>
           ) : null}
-          <button className="ce-btn-draft" onClick={handleDraft} type="button">Save as Draft</button>
-          <button className="ce-btn-publish" onClick={handlePublish} type="button">
-            {isEditMode ? 'Update Event' : 'Publish Event'}
+          <button className="ce-btn-draft" onClick={() => submitEvent('draft')} type="button" disabled={isSubmitting}>
+            {isSubmitting && status === 'draft' ? 'Saving...' : 'Save as Draft'}
+          </button>
+          <button className="ce-btn-publish" onClick={() => submitEvent('published')} type="button" disabled={isSubmitting}>
+            {isSubmitting && status === 'published' ? 'Saving...' : isEditMode ? 'Update Event' : 'Publish Event'}
           </button>
         </div>
 
