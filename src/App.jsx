@@ -288,26 +288,7 @@ export default function App() {
       <div className="main-wrapper">
         {appMode !== 'admin' && !isOrganizerUser && (
           <header className="app-header">
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <button
-                onClick={() => {
-                  const nextMode = appMode === 'attend' ? 'organizer' : appMode === 'organizer' ? 'admin' : 'attend'
-                  setAppMode(nextMode)
-                  setActivePage('dashboard')
-                }}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  background: '#f8fafc',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                  color: '#334155',
-                }}
-              >
-                Switch to {appMode === 'attend' ? 'Organizer' : appMode === 'organizer' ? 'Admin' : 'Attend'} View
-              </button>
+            <div>
               <div className="user-profile">
                 <div className="user-avatar">{user?.name?.slice(0, 2).toUpperCase() || 'EV'}</div>
                 <span className="user-name">{user?.name || 'Eventify User'}</span>

@@ -47,6 +47,19 @@ If you want demo attendee bookings, wishlist, and upcoming events for the attend
 npm run db:seed-attendee
 ```
 
+To seed data for a specific attendee account (recommended for your logged-in user):
+
+```bash
+npm run db:seed-attendee -- --email=your-email@example.com
+```
+
+You can also target by user id or name:
+
+```bash
+npm run db:seed-attendee -- --userId=your-user-uuid
+npm run db:seed-attendee -- --name="Your Full Name"
+```
+
 Backend API:
 
 - `GET /api/health`

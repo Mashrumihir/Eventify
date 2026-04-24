@@ -2,18 +2,49 @@
 import bcrypt from 'bcryptjs';
 import { pool } from '../src/config/db.js';
 
-function slugify(value) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80);
+function parseSeedOptions(argv) {
+  const options = {
+    userId: '',
+    email: '',
+    name: '',
+  };
+
+  argv.forEach((arg) => {
+    if (arg.startsWith('--userId=')) {
+      options.userId = arg.split('=')[1]?.trim() || '';
+    }
+
+    if (arg.startsWith('--email=')) {
+      options.email = arg.split('=')[1]?.trim() || '';
+    }
+
+    if (arg.startsWith('--name=')) {
+      options.name = arg.split('=')[1]?.trim() || '';
+    }
+  });
+
+  return options;
 }
 
 function buildBookingCode() {
   return `EVT-${Date.now()}-${Math.floor(Math.random() * 1000)
     .toString()
     .padStart(3, '0')}`;
+}
+
+function buildPaymentReference() {
+  return `PAY-${Date.now()}-${Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0')}`;
+}
+
+async function ensureUserProfile(client, userId) {
+  await client.query(
+    `INSERT INTO user_profiles (user_id)
+     VALUES ($1)
+     ON CONFLICT (user_id) DO NOTHING`,
+    [userId]
+  );
 }
 
 async function getOrCreateUser(client, { name, email, role }) {
@@ -26,6 +57,7 @@ async function getOrCreateUser(client, { name, email, role }) {
   );
 
   if (existing.rowCount > 0) {
+    await ensureUserProfile(client, existing.rows[0].id);
     return existing.rows[0];
   }
 
@@ -37,14 +69,79 @@ async function getOrCreateUser(client, { name, email, role }) {
     [name, email, passwordHash, role]
   );
 
-  await client.query(
-    `INSERT INTO user_profiles (user_id)
-     VALUES ($1)
-     ON CONFLICT (user_id) DO NOTHING`,
-    [created.rows[0].id]
-  );
+  await ensureUserProfile(client, created.rows[0].id);
 
   return created.rows[0];
+}
+
+async function resolveAttendee(client, options) {
+  if (options.userId) {
+    const byId = await client.query(
+      `SELECT id, full_name, email, role
+       FROM users
+       WHERE id = $1
+         AND role = 'attendee'
+       LIMIT 1`,
+      [options.userId]
+    );
+
+    if (byId.rowCount > 0) {
+      await ensureUserProfile(client, byId.rows[0].id);
+      return byId.rows[0];
+    }
+  }
+
+  if (options.email) {
+    const byEmail = await client.query(
+      `SELECT id, full_name, email, role
+       FROM users
+       WHERE email = $1
+         AND role = 'attendee'
+       LIMIT 1`,
+      [options.email]
+    );
+
+    if (byEmail.rowCount > 0) {
+      await ensureUserProfile(client, byEmail.rows[0].id);
+      return byEmail.rows[0];
+    }
+  }
+
+  if (options.name) {
+    const byName = await client.query(
+      `SELECT id, full_name, email, role
+       FROM users
+       WHERE LOWER(full_name) = LOWER($1)
+         AND role = 'attendee'
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [options.name]
+    );
+
+    if (byName.rowCount > 0) {
+      await ensureUserProfile(client, byName.rows[0].id);
+      return byName.rows[0];
+    }
+  }
+
+  const latestAttendee = await client.query(
+    `SELECT id, full_name, email, role
+     FROM users
+     WHERE role = 'attendee'
+     ORDER BY created_at DESC
+     LIMIT 1`
+  );
+
+  if (latestAttendee.rowCount > 0) {
+    await ensureUserProfile(client, latestAttendee.rows[0].id);
+    return latestAttendee.rows[0];
+  }
+
+  return getOrCreateUser(client, {
+    name: options.name || 'Mihir Mashru',
+    email: options.email || `attendee.${Date.now()}@eventify.local`,
+    role: 'attendee',
+  });
 }
 
 async function getCategoryId(client, name) {
@@ -97,33 +194,24 @@ async function getOrCreateEvent(client, organizerId, venueId, event) {
        category_id,
        venue_id,
        title,
-       slug,
-       short_description,
        description,
-       cover_image_url,
-       banner_image_url,
        start_at,
        end_at,
        status,
-       is_published,
        banner_url,
        base_price,
        capacity,
        tickets_sold,
        refund_policy
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW() + ($10 || ' days')::interval, NOW() + ($11 || ' days')::interval, 'published', true, $12, $13, $14, $15, $16)
+     VALUES ($1, $2, $3, $4, $5, NOW() + ($6 || ' days')::interval, NOW() + ($7 || ' days')::interval, 'published', $8, $9, $10, $11, $12)
      RETURNING id`,
     [
       organizerId,
       categoryId,
       venueId,
       event.title,
-      slugify(event.title),
-      event.shortDescription,
-      event.description,
-      event.bannerUrl,
-      event.bannerUrl,
+      event.description || event.shortDescription,
       String(event.startInDays),
       String(event.endInDays),
       event.bannerUrl,
@@ -152,7 +240,7 @@ async function ensureBooking(client, attendeeId, eventId, status, totalAmount) {
   }
 
   const created = await client.query(
-    `INSERT INTO bookings (booking_code, event_id, user_id, status, total_amount)
+    `INSERT INTO bookings (booking_reference, event_id, user_id, status, total_amount)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
     [buildBookingCode(), eventId, attendeeId, status, totalAmount]
@@ -161,25 +249,67 @@ async function ensureBooking(client, attendeeId, eventId, status, totalAmount) {
   return created.rows[0].id;
 }
 
+async function ensurePayment(client, bookingId, amount, paymentStatus = 'success', provider = 'upi') {
+  if (Number(amount) <= 0) {
+    return;
+  }
+
+  const existing = await client.query(
+    `SELECT id
+     FROM payments
+     WHERE booking_id = $1
+     LIMIT 1`,
+    [bookingId]
+  );
+
+  if (existing.rowCount > 0) {
+    return;
+  }
+
+  await client.query(
+    `INSERT INTO payments (
+       booking_id,
+       provider,
+       payment_reference,
+       amount,
+       payment_status,
+       paid_at
+     )
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [bookingId, provider, buildPaymentReference(), amount, paymentStatus]
+  );
+}
+
+async function ensureNotification(client, userId, title, message, type = 'general') {
+  const existing = await client.query(
+    `SELECT id
+     FROM notifications
+     WHERE user_id = $1
+       AND title = $2
+       AND message = $3
+     LIMIT 1`,
+    [userId, title, message]
+  );
+
+  if (existing.rowCount > 0) {
+    return;
+  }
+
+  await client.query(
+    `INSERT INTO notifications (user_id, title, message, type)
+     VALUES ($1, $2, $3, $4)`,
+    [userId, title, message, type]
+  );
+}
+
 async function run() {
+  const options = parseSeedOptions(process.argv.slice(2));
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
-    const attendee =
-      (await client.query(
-        `SELECT id, full_name, email, role
-         FROM users
-         WHERE role = 'attendee'
-         ORDER BY created_at ASC
-         LIMIT 1`
-      )).rows[0] ||
-      (await getOrCreateUser(client, {
-        name: 'Mihir Mashru',
-        email: 'mihir.attendee@eventify.local',
-        role: 'attendee',
-      }));
+    const attendee = await resolveAttendee(client, options);
 
     const organizer =
       (await client.query(
@@ -268,9 +398,12 @@ async function run() {
       eventIds.push(eventId);
     }
 
-    await ensureBooking(client, attendee.id, eventIds[0], 'confirmed', 899);
+    const bookingOneId = await ensureBooking(client, attendee.id, eventIds[0], 'confirmed', 899);
     await ensureBooking(client, attendee.id, eventIds[1], 'confirmed', 0);
-    await ensureBooking(client, attendee.id, eventIds[2], 'cancelled', 1299);
+    const bookingThreeId = await ensureBooking(client, attendee.id, eventIds[2], 'cancelled', 1299);
+
+    await ensurePayment(client, bookingOneId, 899, 'success', 'upi');
+    await ensurePayment(client, bookingThreeId, 1299, 'refunded', 'card');
 
     await client.query(
       `INSERT INTO wishlists (user_id, event_id)
@@ -279,8 +412,30 @@ async function run() {
       [attendee.id, eventIds[2]]
     );
 
+    await ensureNotification(
+      client,
+      attendee.id,
+      'Booking Confirmed',
+      `Your booking for ${events[0].title} is confirmed.`,
+      'booking'
+    );
+    await ensureNotification(
+      client,
+      attendee.id,
+      'Event Reminder',
+      `${events[1].title} is coming up soon.`,
+      'reminder'
+    );
+    await ensureNotification(
+      client,
+      attendee.id,
+      'Refund Processed',
+      `Refund for ${events[2].title} has been initiated.`,
+      'payment'
+    );
+
     await client.query('COMMIT');
-    console.log(`Attendee demo data seeded for ${attendee.email}.`);
+    console.log(`Attendee demo data seeded for ${attendee.email} (${attendee.id}).`);
     console.log('If you need to log in with the created demo attendee, use password: Demo@123');
   } catch (error) {
     await client.query('ROLLBACK');
