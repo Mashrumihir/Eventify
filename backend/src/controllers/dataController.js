@@ -557,6 +557,489 @@ export async function cancelAttendeeBooking(req, res) {
   });
 }
 
+export async function listAttendeePayments(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const [paymentsResult, freeBookingsResult] = await Promise.all([
+    query(
+      `SELECT
+         p.id,
+         p.payment_reference,
+         p.provider,
+         p.amount,
+         p.payment_status,
+         p.paid_at,
+         p.created_at,
+         b.booking_reference,
+         e.title AS event_title,
+         COALESCE(SUM(bi.quantity), 1) AS quantity,
+         COALESCE(MAX(tt.name), 'Regular') AS ticket_type
+       FROM payments p
+       JOIN bookings b ON b.id = p.booking_id
+       JOIN events e ON e.id = b.event_id
+       LEFT JOIN booking_items bi ON bi.booking_id = b.id
+       LEFT JOIN ticket_types tt ON tt.id = bi.ticket_type_id
+       WHERE b.user_id = $1
+       GROUP BY p.id, p.payment_reference, p.provider, p.amount, p.payment_status, p.paid_at, p.created_at, b.booking_reference, e.title
+       ORDER BY COALESCE(p.paid_at, p.created_at) DESC`,
+      [userId]
+    ),
+    query(
+      `SELECT COUNT(*) AS free_bookings
+       FROM bookings b
+       WHERE b.user_id = $1
+         AND b.total_amount = 0`,
+      [userId]
+    ),
+  ]);
+
+  const totalPaid = paymentsResult.rows.reduce((sum, row) => {
+    return row.payment_status === 'success' ? sum + Number(row.amount || 0) : sum;
+  }, 0);
+
+  const successfulTransactions = paymentsResult.rows.filter(
+    (row) => row.payment_status === 'success'
+  ).length;
+
+  res.json({
+    summary: {
+      totalPaid,
+      successfulTransactions,
+      freeBookings: Number(freeBookingsResult.rows[0]?.free_bookings || 0),
+    },
+    transactions: paymentsResult.rows.map((row) => ({
+      id: row.id,
+      transactionId: row.payment_reference || row.id,
+      bookingId: row.booking_reference,
+      date: row.paid_at || row.created_at,
+      event: row.event_title,
+      ticket: row.ticket_type,
+      quantity: Number(row.quantity || 1),
+      amount: Number(row.amount || 0),
+      method: row.provider || 'manual',
+      status: row.payment_status,
+    })),
+  });
+}
+
+export async function listAttendeeWishlist(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `SELECT
+       e.id,
+       e.title,
+       e.start_at,
+       e.banner_url,
+       e.base_price,
+       c.name AS category_name,
+       CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
+       COALESCE(AVG(r.rating), 0) AS rating,
+       COUNT(DISTINCT r.id) AS reviews_count
+     FROM wishlists w
+     JOIN events e ON e.id = w.event_id
+     LEFT JOIN categories c ON c.id = e.category_id
+     LEFT JOIN venues v ON v.id = e.venue_id
+     LEFT JOIN reviews r ON r.event_id = e.id
+     WHERE w.user_id = $1
+     GROUP BY e.id, c.name, v.name, v.city, v.state
+     ORDER BY w.created_at DESC`,
+    [userId]
+  );
+
+  res.json({
+    events: result.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      category: row.category_name || 'General',
+      date: row.start_at,
+      location: row.venue_label || 'Online',
+      rating: Number(row.rating || 0),
+      reviewsCount: Number(row.reviews_count || 0),
+      price: Number(row.base_price || 0),
+      image: row.banner_url || '',
+    })),
+  });
+}
+
+export async function listAttendeeNotifications(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `SELECT id, title, message, type, is_read, created_at
+     FROM notifications
+     WHERE user_id = $1
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+
+  res.json({
+    notifications: result.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      message: row.message,
+      type: row.type || 'general',
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+    })),
+  });
+}
+
+export async function markNotificationAsRead(req, res) {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `UPDATE notifications
+     SET is_read = TRUE
+     WHERE id = $1
+       AND user_id = $2
+     RETURNING id`,
+    [id, userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'Notification not found.' });
+  }
+
+  return res.json({ message: 'Notification marked as read.' });
+}
+
+export async function markAllNotificationsAsRead(req, res) {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  await query(
+    `UPDATE notifications
+     SET is_read = TRUE
+     WHERE user_id = $1`,
+    [userId]
+  );
+
+  return res.json({ message: 'All notifications marked as read.' });
+}
+
+export async function listAttendeeReviews(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const [reviewsResult, pendingResult] = await Promise.all([
+    query(
+      `SELECT
+         r.id,
+         r.event_id,
+         r.rating,
+         r.comment,
+         r.created_at,
+         e.title,
+         e.banner_url
+       FROM reviews r
+       JOIN events e ON e.id = r.event_id
+       WHERE r.user_id = $1
+       ORDER BY r.created_at DESC`,
+      [userId]
+    ),
+    query(
+      `SELECT
+         e.id,
+         e.title,
+         e.banner_url,
+         COALESCE(e.end_at, e.start_at) AS attended_at
+       FROM bookings b
+       JOIN events e ON e.id = b.event_id
+       WHERE b.user_id = $1
+         AND b.status = 'confirmed'
+         AND COALESCE(e.end_at, e.start_at) < NOW()
+         AND NOT EXISTS (
+           SELECT 1
+           FROM reviews r
+           WHERE r.user_id = $1
+             AND r.event_id = e.id
+         )
+       GROUP BY e.id
+       ORDER BY attended_at DESC`,
+      [userId]
+    ),
+  ]);
+
+  res.json({
+    reviews: reviewsResult.rows.map((row) => ({
+      id: row.id,
+      eventId: row.event_id,
+      title: row.title,
+      rating: Number(row.rating || 0),
+      text: row.comment || '',
+      date: row.created_at,
+      image: row.banner_url || '',
+    })),
+    pendingReviews: pendingResult.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      image: row.banner_url || '',
+      attendedAt: row.attended_at,
+    })),
+  });
+}
+
+export async function createAttendeeReview(req, res) {
+  const { userId, eventId, rating, text = '' } = req.body;
+
+  if (!userId || !eventId || !rating) {
+    return res.status(400).json({ message: 'User, event, and rating are required.' });
+  }
+
+  const bookingCheck = await query(
+    `SELECT 1
+     FROM bookings b
+     JOIN events e ON e.id = b.event_id
+     WHERE b.user_id = $1
+       AND b.event_id = $2
+       AND b.status = 'confirmed'
+       AND COALESCE(e.end_at, e.start_at) < NOW()
+     LIMIT 1`,
+    [userId, eventId]
+  );
+
+  if (bookingCheck.rowCount === 0) {
+    return res.status(400).json({ message: 'You can review only attended events.' });
+  }
+
+  const result = await query(
+    `INSERT INTO reviews (event_id, user_id, rating, comment)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, event_id, rating, comment, created_at`,
+    [eventId, userId, Number(rating), text.trim()]
+  );
+
+  return res.status(201).json({
+    message: 'Review created successfully.',
+    review: {
+      id: result.rows[0].id,
+      eventId: result.rows[0].event_id,
+      rating: Number(result.rows[0].rating || 0),
+      text: result.rows[0].comment || '',
+      date: result.rows[0].created_at,
+    },
+  });
+}
+
+export async function updateAttendeeReview(req, res) {
+  const { id } = req.params;
+  const { userId, rating, text = '' } = req.body;
+
+  if (!userId || !rating) {
+    return res.status(400).json({ message: 'User and rating are required.' });
+  }
+
+  const result = await query(
+    `UPDATE reviews
+     SET rating = $3,
+         comment = $4
+     WHERE id = $1
+       AND user_id = $2
+     RETURNING id, event_id, rating, comment, created_at`,
+    [id, userId, Number(rating), text.trim()]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'Review not found.' });
+  }
+
+  return res.json({
+    message: 'Review updated successfully.',
+    review: {
+      id: result.rows[0].id,
+      eventId: result.rows[0].event_id,
+      rating: Number(result.rows[0].rating || 0),
+      text: result.rows[0].comment || '',
+      date: result.rows[0].created_at,
+    },
+  });
+}
+
+export async function deleteAttendeeReview(req, res) {
+  const { id } = req.params;
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `DELETE FROM reviews
+     WHERE id = $1
+       AND user_id = $2
+     RETURNING id`,
+    [id, userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'Review not found.' });
+  }
+
+  return res.json({ message: 'Review deleted successfully.' });
+}
+
+export async function getAttendeeProfile(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `SELECT
+       u.id,
+       u.full_name,
+       u.email,
+       u.phone,
+       u.avatar_url,
+       up.city,
+       up.state,
+       up.country
+     FROM users u
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     WHERE u.id = $1
+     LIMIT 1`,
+    [userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+
+  const row = result.rows[0];
+
+  return res.json({
+    profile: {
+      id: row.id,
+      name: row.full_name,
+      email: row.email,
+      phone: row.phone || '',
+      location: [row.city, row.state].filter(Boolean).join(', '),
+      photo: row.avatar_url || '',
+      dob: '',
+      bio: '',
+    },
+  });
+}
+
+export async function updateAttendeeProfile(req, res) {
+  const { userId, name, email, phone = '', location = '' } = req.body;
+
+  if (!userId || !name || !email) {
+    return res.status(400).json({ message: 'User, name, and email are required.' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const [city = '', state = ''] = location
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const duplicate = await query(
+    `SELECT id
+     FROM users
+     WHERE email = $1
+       AND id <> $2
+     LIMIT 1`,
+    [normalizedEmail, userId]
+  );
+
+  if (duplicate.rowCount > 0) {
+    return res.status(409).json({ message: 'Email already in use by another account.' });
+  }
+
+  await query(
+    `UPDATE users
+     SET full_name = $2,
+         email = $3,
+         phone = $4,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [userId, name.trim(), normalizedEmail, phone.trim()]
+  );
+
+  await query(
+    `INSERT INTO user_profiles (user_id, city, state)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (user_id)
+     DO UPDATE SET
+       city = EXCLUDED.city,
+       state = EXCLUDED.state,
+       updated_at = NOW()`,
+    [userId, city || null, state || null]
+  );
+
+  return res.json({ message: 'Profile updated successfully.' });
+}
+
+export async function updateAttendeePassword(req, res) {
+  const { userId, currentPassword, newPassword } = req.body;
+
+  if (!userId || !currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ message: 'User, current password, and new password are required.' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+  }
+
+  const userResult = await query(
+    `SELECT id, password_hash
+     FROM users
+     WHERE id = $1
+     LIMIT 1`,
+    [userId]
+  );
+
+  if (userResult.rowCount === 0) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+
+  const isValidPassword = await bcrypt.compare(currentPassword, userResult.rows[0].password_hash);
+
+  if (!isValidPassword) {
+    return res.status(400).json({ message: 'Current password is incorrect.' });
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await query(
+    `UPDATE users
+     SET password_hash = $2,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [userId, passwordHash]
+  );
+
+  return res.json({ message: 'Password updated successfully.' });
+}
+
 export async function getOrganizerDashboard(req, res) {
   const { organizerId } = req.query;
 

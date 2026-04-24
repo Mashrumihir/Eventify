@@ -1,49 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './css/Reviews.css'
+import {
+  createAttendeeReview,
+  deleteAttendeeReview,
+  fetchAttendeeReviews,
+  updateAttendeeReview,
+} from '../../services/dataService'
 
-const INITIAL_REVIEWS = [
-  {
-    id: 1,
-    title: 'Startup Networking Event',
-    date: 'Apr 7, 2026',
-    rating: 5,
-    text: 'good event',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&q=80',
-  },
-  {
-    id: 2,
-    title: 'Tech Summit 2026',
-    date: 'Apr 5, 2026',
-    rating: 5,
-    text: 'Amazing event! Great speakers and strong networking opportunities.',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&q=80',
-  },
-  {
-    id: 3,
-    title: 'Summer Music Festival 2024',
-    date: 'Apr 4, 2026',
-    rating: 5,
-    text: 'Great lineup and atmosphere. Would attend again.',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80',
-  },
-  {
-    id: 4,
-    title: 'Modern Art Exhibition',
-    date: 'Apr 3, 2026',
-    rating: 5,
-    text: 'Excellent experience and very well organized.',
-    image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&q=80',
-  },
-]
-
-const PENDING_REVIEWS = [
-  {
-    id: 101,
-    title: 'Championship Basketball',
-    date: 'Attended on Apr 6, 2026',
-    image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&q=80',
-  },
-]
+function formatDate(value) {
+  return new Date(value).toLocaleDateString('en-IN', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
 
 function StarRating({ rating }) {
   return (
@@ -155,20 +125,62 @@ function ReviewCard({ review, onDelete, onEdit }) {
   )
 }
 
-export default function Reviews() {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS)
+export default function Reviews({ currentUser }) {
+  const [reviews, setReviews] = useState([])
+  const [pendingReviews, setPendingReviews] = useState([])
   const [reviewDraft, setReviewDraft] = useState(null)
+  const [message, setMessage] = useState('')
 
-  const handleDelete = (id) => {
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadReviews() {
+      if (!currentUser?.id) {
+        if (isMounted) {
+          setReviews([])
+          setPendingReviews([])
+        }
+        return
+      }
+
+      try {
+        setMessage('')
+        const response = await fetchAttendeeReviews(currentUser.id)
+
+        if (isMounted) {
+          setReviews(response.reviews || [])
+          setPendingReviews(response.pendingReviews || [])
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setMessage(loadError.message || 'Failed to load reviews.')
+        }
+      }
+    }
+
+    loadReviews()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser?.id])
+
+  const handleDelete = async (id) => {
+    if (!currentUser?.id) {
+      return
+    }
+
+    await deleteAttendeeReview(id, currentUser.id)
     setReviews((current) => current.filter((review) => review.id !== id))
   }
 
   const openEditModal = (review) => {
     setReviewDraft({
       id: review.id,
+      eventId: review.eventId,
       title: review.title,
       image: review.image,
-      date: review.date,
+      date: formatDate(review.date),
       rating: review.rating,
       text: review.text,
       mode: 'edit',
@@ -178,9 +190,10 @@ export default function Reviews() {
   const openCreateModal = (event) => {
     setReviewDraft({
       id: event.id,
+      eventId: event.id,
       title: event.title,
       image: event.image,
-      date: 'Apr 12, 2026',
+      date: formatDate(event.attendedAt),
       rating: 5,
       text: '',
       mode: 'create',
@@ -200,7 +213,7 @@ export default function Reviews() {
     }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!reviewDraft) {
@@ -208,6 +221,12 @@ export default function Reviews() {
     }
 
     if (reviewDraft.mode === 'edit') {
+      await updateAttendeeReview(reviewDraft.id, {
+        userId: currentUser.id,
+        rating: reviewDraft.rating,
+        text: reviewDraft.text.trim(),
+      })
+
       setReviews((current) => current.map((review) => (
         review.id === reviewDraft.id
           ? {
@@ -218,9 +237,17 @@ export default function Reviews() {
           : review
       )))
     } else {
+      const response = await createAttendeeReview({
+        userId: currentUser.id,
+        eventId: reviewDraft.eventId,
+        rating: reviewDraft.rating,
+        text: reviewDraft.text.trim(),
+      })
+
       setReviews((current) => [
         {
-          id: Date.now(),
+          id: response.review.id,
+          eventId: reviewDraft.eventId,
           title: reviewDraft.title,
           date: reviewDraft.date,
           rating: reviewDraft.rating,
@@ -229,6 +256,10 @@ export default function Reviews() {
         },
         ...current,
       ])
+
+      setPendingReviews((currentPending) =>
+        currentPending.filter((pending) => pending.id !== reviewDraft.eventId)
+      )
     }
 
     closeModal()
@@ -242,8 +273,14 @@ export default function Reviews() {
       </header>
 
       <section className="rev-list">
+        {message ? <p className="rev-empty">{message}</p> : null}
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} onDelete={handleDelete} onEdit={openEditModal} />
+          <ReviewCard
+            key={review.id}
+            review={{ ...review, date: formatDate(review.date) }}
+            onDelete={handleDelete}
+            onEdit={openEditModal}
+          />
         ))}
 
         {reviews.length === 0 ? (
@@ -255,7 +292,7 @@ export default function Reviews() {
         <h2 className="rev-section-title">Events Waiting for Your Review</h2>
 
         <div className="rev-pending-list">
-          {PENDING_REVIEWS.map((event) => (
+          {pendingReviews.map((event) => (
             <article key={event.id} className="rev-pending-card">
               <div className="rev-pending-img">
                 <img src={event.image} alt={event.title} />
@@ -263,7 +300,7 @@ export default function Reviews() {
 
               <div className="rev-pending-info">
                 <h3 className="rev-pending-title">{event.title}</h3>
-                <p className="rev-pending-date">{event.date}</p>
+                <p className="rev-pending-date">Attended on {formatDate(event.attendedAt)}</p>
               </div>
 
               <button className="rev-btn-primary" onClick={() => openCreateModal(event)} type="button">Review</button>

@@ -1,5 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './css/ProfileSettings.css'
+import {
+  fetchAttendeeProfile,
+  updateAttendeePassword,
+  updateAttendeeProfile,
+} from '../../services/dataService'
 
 const DEFAULT_PROFILE = {
   name: 'Mihir Mashru',
@@ -64,7 +69,7 @@ function CameraIcon() {
   )
 }
 
-export default function ProfileSettings() {
+export default function ProfileSettings({ currentUser }) {
   const [activeTab, setActiveTab] = useState('edit-profile')
   const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [passwords, setPasswords] = useState(DEFAULT_PASSWORDS)
@@ -75,6 +80,37 @@ export default function ProfileSettings() {
     confirmPassword: false,
   })
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadProfile() {
+      if (!currentUser?.id) {
+        return
+      }
+
+      try {
+        const response = await fetchAttendeeProfile(currentUser.id)
+
+        if (isMounted && response.profile) {
+          setProfile((currentProfile) => ({
+            ...currentProfile,
+            ...response.profile,
+          }))
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setMessage(loadError.message || 'Failed to load profile.')
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser?.id])
 
   const handleProfileChange = (event) => {
     const { name, value } = event.target
@@ -102,8 +138,25 @@ export default function ProfileSettings() {
     setMessage('Profile photo selected successfully.')
   }
 
-  const handleSaveProfile = () => {
-    setMessage('Profile changes saved successfully.')
+  const handleSaveProfile = async () => {
+    if (!currentUser?.id) {
+      setMessage('Please login again to update profile.')
+      return
+    }
+
+    try {
+      await updateAttendeeProfile({
+        userId: currentUser.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        location: profile.location,
+      })
+
+      setMessage('Profile changes saved successfully.')
+    } catch (saveError) {
+      setMessage(saveError.message || 'Failed to save profile changes.')
+    }
   }
 
   const handleResetProfile = () => {
@@ -115,7 +168,7 @@ export default function ProfileSettings() {
     setShowPasswords((current) => ({ ...current, [field]: !current[field] }))
   }
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
       setMessage('Fill in all password fields.')
       return
@@ -131,8 +184,23 @@ export default function ProfileSettings() {
       return
     }
 
-    setPasswords(DEFAULT_PASSWORDS)
-    setMessage('Password updated successfully.')
+    if (!currentUser?.id) {
+      setMessage('Please login again to update password.')
+      return
+    }
+
+    try {
+      await updateAttendeePassword({
+        userId: currentUser.id,
+        currentPassword: passwords.currentPassword,
+        newPassword: passwords.newPassword,
+      })
+
+      setPasswords(DEFAULT_PASSWORDS)
+      setMessage('Password updated successfully.')
+    } catch (passwordError) {
+      setMessage(passwordError.message || 'Failed to update password.')
+    }
   }
 
   const handleResetPasswords = () => {

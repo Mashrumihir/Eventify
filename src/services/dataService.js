@@ -67,6 +67,74 @@ export function cancelAttendeeBooking(bookingId, userId) {
   });
 }
 
+export function fetchAttendeePayments(userId) {
+  return apiRequest(`/attendee/payments?userId=${encodeURIComponent(userId)}`);
+}
+
+export function fetchAttendeeWishlist(userId) {
+  return apiRequest(`/attendee/wishlist?userId=${encodeURIComponent(userId)}`);
+}
+
+export function fetchAttendeeNotifications(userId) {
+  return apiRequest(`/attendee/notifications?userId=${encodeURIComponent(userId)}`);
+}
+
+export function markAttendeeNotificationRead(notificationId, userId) {
+  return apiRequest(`/attendee/notifications/${encodeURIComponent(notificationId)}/read`, {
+    method: 'PATCH',
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export function markAllAttendeeNotificationsRead(userId) {
+  return apiRequest('/attendee/notifications/read-all', {
+    method: 'PATCH',
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export function fetchAttendeeReviews(userId) {
+  return apiRequest(`/attendee/reviews?userId=${encodeURIComponent(userId)}`);
+}
+
+export function createAttendeeReview(payload) {
+  return apiRequest('/attendee/reviews', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateAttendeeReview(reviewId, payload) {
+  return apiRequest(`/attendee/reviews/${encodeURIComponent(reviewId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteAttendeeReview(reviewId, userId) {
+  return apiRequest(`/attendee/reviews/${encodeURIComponent(reviewId)}?userId=${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function fetchAttendeeProfile(userId) {
+  return apiRequest(`/attendee/profile?userId=${encodeURIComponent(userId)}`);
+}
+
+export function updateAttendeeProfile(payload) {
+  return apiRequest('/attendee/profile', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateAttendeePassword(payload) {
+  return apiRequest('/attendee/profile/password', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function fetchUsers(params = {}) {
   const searchParams = new URLSearchParams();
 

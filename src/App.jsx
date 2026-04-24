@@ -143,19 +143,19 @@ export default function App() {
       case 'paymentSuccess':
         return <PaymentSuccess onNavigate={setActivePage} />
       case 'payments':
-        return <Payments />
+        return <Payments currentUser={user} />
       case 'taxInvoice':
         return <TaxInvoice onNavigate={setActivePage} />
       case 'bookings':
         return <MyBookings currentUser={user} onNavigate={setActivePage} />
       case 'wishlist':
-        return <Wishlist />
+        return <Wishlist currentUser={user} />
       case 'notifications':
-        return <Notifications />
+        return <Notifications currentUser={user} />
       case 'reviews':
-        return <Reviews />
+        return <Reviews currentUser={user} />
       case 'profile':
-        return <ProfileSettings />
+        return <ProfileSettings currentUser={user} />
       default:
         return <Dashboard currentUser={user} />
     }
