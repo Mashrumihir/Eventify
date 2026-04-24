@@ -52,6 +52,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [authMode, setAuthMode] = useState('home')
   const [organizerEditorState, setOrganizerEditorState] = useState({ mode: 'create', eventData: null })
+  const isOrganizerUser = user?.role === 'organizer' || user?.role === 'organize'
 
   const handleLogout = () => {
     logout()
@@ -146,7 +147,7 @@ export default function App() {
       case 'taxInvoice':
         return <TaxInvoice onNavigate={setActivePage} />
       case 'bookings':
-        return <MyBookings onNavigate={setActivePage} />
+        return <MyBookings currentUser={user} onNavigate={setActivePage} />
       case 'wishlist':
         return <Wishlist />
       case 'notifications':
@@ -285,7 +286,7 @@ export default function App() {
       )}
 
       <div className="main-wrapper">
-        {appMode !== 'admin' && (
+        {appMode !== 'admin' && !isOrganizerUser && (
           <header className="app-header">
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <button

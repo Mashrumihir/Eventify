@@ -56,6 +56,17 @@ export function toggleWishlist(userId, eventId) {
   });
 }
 
+export function fetchAttendeeBookings(userId) {
+  return apiRequest(`/attendee/bookings?userId=${encodeURIComponent(userId)}`);
+}
+
+export function cancelAttendeeBooking(bookingId, userId) {
+  return apiRequest(`/attendee/bookings/${encodeURIComponent(bookingId)}/cancel`, {
+    method: 'PATCH',
+    body: JSON.stringify({ userId }),
+  });
+}
+
 export function fetchUsers(params = {}) {
   const searchParams = new URLSearchParams();
 

@@ -472,6 +472,91 @@ export async function toggleWishlist(req, res) {
   return res.json({ wishlisted: true, message: 'Added to wishlist.' });
 }
 
+export async function listAttendeeBookings(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `SELECT
+       b.id,
+       b.booking_reference,
+       b.status,
+       b.total_amount,
+       e.title,
+       e.start_at,
+       e.end_at,
+       e.banner_url,
+       c.name AS category_name,
+       CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
+       COALESCE(SUM(bi.quantity), 1) AS quantity,
+       COALESCE(MAX(tt.name), 'Regular') AS ticket_type
+     FROM bookings b
+     JOIN events e ON e.id = b.event_id
+     LEFT JOIN categories c ON c.id = e.category_id
+     LEFT JOIN venues v ON v.id = e.venue_id
+     LEFT JOIN booking_items bi ON bi.booking_id = b.id
+     LEFT JOIN ticket_types tt ON tt.id = bi.ticket_type_id
+     WHERE b.user_id = $1
+     GROUP BY b.id, b.booking_reference, b.status, b.total_amount, e.title, e.start_at, e.end_at, e.banner_url, c.name, v.name, v.city, v.state
+     ORDER BY e.start_at DESC`,
+    [userId]
+  );
+
+  res.json({
+    bookings: result.rows.map((row) => ({
+      bookingId: row.id,
+      id: row.booking_reference || row.id,
+      status: row.status,
+      title: row.title,
+      category: row.category_name || 'General',
+      date: row.start_at,
+      endDate: row.end_at,
+      location: row.venue_label || 'Online',
+      accessType: `${row.ticket_type || 'Regular'} Access`,
+      purchaseQuantity: Number(row.quantity || 1),
+      ticketType: row.ticket_type || 'Regular',
+      totalAmount: Number(row.total_amount || 0),
+      image: row.banner_url || '',
+    })),
+  });
+}
+
+export async function cancelAttendeeBooking(req, res) {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `UPDATE bookings
+     SET status = 'cancelled',
+         updated_at = NOW()
+     WHERE id = $1
+       AND user_id = $2
+       AND status IN ('pending', 'confirmed')
+     RETURNING id, booking_reference, status`,
+    [id, userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(400).json({ message: 'Booking cannot be canceled.' });
+  }
+
+  return res.json({
+    message: 'Booking canceled successfully.',
+    booking: {
+      bookingId: result.rows[0].id,
+      id: result.rows[0].booking_reference || result.rows[0].id,
+      status: result.rows[0].status,
+    },
+  });
+}
+
 export async function getOrganizerDashboard(req, res) {
   const { organizerId } = req.query;
 

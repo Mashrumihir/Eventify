@@ -1,55 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './css/MyBookings.css'
 import { createInvoiceFromBooking } from './js/invoiceData'
 import { buildInvoicePrintMarkup } from './js/invoicePrintTemplate'
-
-const BOOKINGS_DATA = [
-  {
-    id: 'EVT-20260412083648-007',
-    title: 'Jazz Night Live',
-    status: 'confirmed',
-    date: 'July 12, 2026',
-    time: '8:00 PM - 5:00 AM',
-    location: 'Hemu Gadhvi Hall, Rajkot',
-    accessType: 'Regular Access',
-    accessIcon: 'ticket',
-    accessColor: '#22c55e',
-    purchaseStr: '1 x Regular',
-    price: '\u20B955.00',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80',
-    type: 'upcoming',
-  },
-  {
-    id: 'FR-20260411162726-003',
-    title: 'Modern Art Exhibition',
-    status: 'canceled',
-    date: 'June 10, 2026',
-    time: '10:00 AM - 7:00 PM',
-    location: 'Ahmedabad, Gujarat',
-    accessType: 'Standard Access',
-    accessIcon: 'ticket',
-    accessColor: '#22c55e',
-    purchaseStr: '1 x Regular',
-    price: 'Free',
-    image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&q=80',
-    type: 'canceled',
-  },
-  {
-    id: 'EVT-20260605113510-018',
-    title: 'Startup Mixer Night',
-    status: 'confirmed',
-    date: 'August 02, 2026',
-    time: '6:30 PM - 11:30 PM',
-    location: 'Riverfront Arena, Ahmedabad',
-    accessType: 'VIP Access',
-    accessIcon: 'star',
-    accessColor: '#eab308',
-    purchaseStr: '2 x VIP',
-    price: '\u20B9240.00',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&q=80',
-    type: 'upcoming',
-  },
-]
+import { cancelAttendeeBooking, fetchAttendeeBookings } from '../../services/dataService'
 
 const Icons = {
   check: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
@@ -74,6 +27,58 @@ function openTaxInvoicePrintView(booking) {
   invoiceWindow.document.write(invoiceMarkup)
   invoiceWindow.document.close()
   return true
+}
+
+function formatDate(value) {
+  return new Date(value).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function formatTimeRange(startAt, endAt) {
+  const start = new Date(startAt).toLocaleTimeString('en-IN', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+
+  const end = endAt
+    ? new Date(endAt).toLocaleTimeString('en-IN', {
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+    : null
+
+  return end ? `${start} - ${end}` : start
+}
+
+function formatPrice(amount) {
+  return Number(amount || 0) === 0 ? 'Free' : `\u20B9${Number(amount).toFixed(2)}`
+}
+
+function normalizeBooking(rawBooking) {
+  const status = rawBooking.status === 'cancelled' ? 'canceled' : rawBooking.status
+  const isCanceled = status === 'canceled' || status === 'refunded'
+  const isUpcoming = new Date(rawBooking.date) >= new Date()
+  const isVip = /vip/i.test(rawBooking.ticketType || '')
+
+  return {
+    bookingId: rawBooking.bookingId,
+    id: rawBooking.id,
+    title: rawBooking.title,
+    status,
+    date: formatDate(rawBooking.date),
+    time: formatTimeRange(rawBooking.date, rawBooking.endDate),
+    location: rawBooking.location || 'Online',
+    accessType: rawBooking.accessType || 'Regular Access',
+    accessIcon: isVip ? 'star' : 'ticket',
+    accessColor: isVip ? '#eab308' : '#22c55e',
+    purchaseStr: `${rawBooking.purchaseQuantity || 1} x ${rawBooking.ticketType || 'Regular'}`,
+    price: formatPrice(rawBooking.totalAmount),
+    image: rawBooking.image || '',
+    type: isCanceled ? 'canceled' : isUpcoming ? 'upcoming' : 'past',
+  }
 }
 
 function BookingCard({ booking, isSelected, onShow, onDownload, onCancel }) {
@@ -132,7 +137,7 @@ function BookingCard({ booking, isSelected, onShow, onDownload, onCancel }) {
           {!isCanceled ? (
             <>
               <button className="mb-btn-primary" onClick={() => onDownload(booking)} type="button">Download</button>
-              <button className="mb-btn-danger" onClick={() => onCancel(booking.id)} type="button">Cancel</button>
+              <button className="mb-btn-danger" onClick={onCancel} type="button">Cancel</button>
             </>
           ) : (
             <button className="mb-btn-disabled" disabled type="button">Refunded</button>
@@ -143,11 +148,53 @@ function BookingCard({ booking, isSelected, onShow, onDownload, onCancel }) {
   )
 }
 
-export default function MyBookings({ onNavigate }) {
+export default function MyBookings({ currentUser, onNavigate }) {
   const [activeTab, setActiveTab] = useState('all')
-  const [bookings, setBookings] = useState(BOOKINGS_DATA)
-  const [selectedBookingId, setSelectedBookingId] = useState(BOOKINGS_DATA[0]?.id ?? '')
+  const [bookings, setBookings] = useState([])
+  const [selectedBookingId, setSelectedBookingId] = useState('')
   const [actionMessage, setActionMessage] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadBookings() {
+      if (!currentUser?.id) {
+        if (isMounted) {
+          setBookings([])
+          setIsLoading(false)
+        }
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError('')
+        const response = await fetchAttendeeBookings(currentUser.id)
+        const mappedBookings = (response.bookings || []).map(normalizeBooking)
+
+        if (isMounted) {
+          setBookings(mappedBookings)
+          setSelectedBookingId(mappedBookings[0]?.id || '')
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setError(loadError.message || 'Failed to load bookings.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadBookings()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser?.id])
 
   const handleShowBooking = (booking) => {
     setSelectedBookingId(booking.id)
@@ -166,16 +213,26 @@ export default function MyBookings({ onNavigate }) {
     setActionMessage(`Tax invoice opened for ${booking.title}. Choose "Save as PDF" to download.`)
   }
 
-  const handleCancelBooking = (bookingId) => {
-    setBookings((currentBookings) =>
-      currentBookings.map((booking) =>
-        booking.id === bookingId
-          ? { ...booking, status: 'canceled', type: 'canceled' }
-          : booking
+  const handleCancelBooking = async (booking) => {
+    if (!currentUser?.id) {
+      setActionMessage('Please login again to cancel this booking.')
+      return
+    }
+
+    try {
+      await cancelAttendeeBooking(booking.bookingId, currentUser.id)
+      setBookings((currentBookings) =>
+        currentBookings.map((currentBooking) =>
+          currentBooking.bookingId === booking.bookingId
+            ? { ...currentBooking, status: 'canceled', type: 'canceled' }
+            : currentBooking
+        )
       )
-    )
-    setSelectedBookingId(bookingId)
-    setActionMessage('Booking canceled and moved to the refunded state.')
+      setSelectedBookingId(booking.id)
+      setActionMessage('Booking canceled and moved to canceled bookings.')
+    } catch (cancelError) {
+      setActionMessage(cancelError.message || 'Unable to cancel booking right now.')
+    }
   }
 
   const filteredBookings = bookings.filter((booking) => {
@@ -206,7 +263,12 @@ export default function MyBookings({ onNavigate }) {
 
       <div className="mb-list">
         {actionMessage ? <p className="mb-action-message">{actionMessage}</p> : null}
-        {filteredBookings.length > 0 ? (
+        {error ? <p className="mb-action-message">{error}</p> : null}
+        {isLoading ? (
+          <div className="mb-empty">
+            <p>Loading your bookings...</p>
+          </div>
+        ) : filteredBookings.length > 0 ? (
           filteredBookings.map((booking) => (
             <BookingCard
               key={booking.id}
@@ -214,7 +276,7 @@ export default function MyBookings({ onNavigate }) {
               isSelected={selectedBookingId === booking.id}
               onShow={handleShowBooking}
               onDownload={handleDownloadBooking}
-              onCancel={handleCancelBooking}
+              onCancel={() => handleCancelBooking(booking)}
             />
           ))
         ) : (
