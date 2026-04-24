@@ -1,7 +1,10 @@
+import { useMemo } from 'react'
 import './css/TaxInvoice.css'
-import { DEFAULT_INVOICE as invoice } from './js/invoiceData'
+import { getActiveInvoice } from './js/invoiceData'
 
 export default function TaxInvoice({ onNavigate }) {
+  const invoice = useMemo(() => getActiveInvoice(), [])
+
   return (
     <div className="ti-layout">
       <div className="ti-card">

@@ -141,11 +141,11 @@ export default function App() {
       case 'eventDetails':
         return <EventDetails onNavigate={setActivePage} />
       case 'paymentSuccess':
-        return <PaymentSuccess onNavigate={setActivePage} />
+        return <PaymentSuccess currentUser={user} onNavigate={setActivePage} />
       case 'payments':
         return <Payments currentUser={user} />
       case 'taxInvoice':
-        return <TaxInvoice onNavigate={setActivePage} />
+        return <TaxInvoice currentUser={user} onNavigate={setActivePage} />
       case 'bookings':
         return <MyBookings currentUser={user} onNavigate={setActivePage} />
       case 'wishlist':

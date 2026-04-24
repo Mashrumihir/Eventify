@@ -18,6 +18,8 @@ export const DEFAULT_INVOICE = {
   image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80',
 }
 
+const ACTIVE_INVOICE_STORAGE_KEY = 'eventify-active-invoice'
+
 export function createInvoiceFromBooking(booking) {
   return {
     ...DEFAULT_INVOICE,
@@ -32,5 +34,31 @@ export function createInvoiceFromBooking(booking) {
     totalPaid: booking.price,
     subtotal: booking.price,
     image: booking.image,
+  }
+}
+
+export function setActiveInvoiceFromBooking(booking, user) {
+  const invoice = {
+    ...createInvoiceFromBooking(booking),
+    billedToName: user?.name || DEFAULT_INVOICE.billedToName,
+    billedToEmail: user?.email || DEFAULT_INVOICE.billedToEmail,
+  }
+
+  window.localStorage.setItem(ACTIVE_INVOICE_STORAGE_KEY, JSON.stringify(invoice))
+  return invoice
+}
+
+export function getActiveInvoice() {
+  const storedInvoice = window.localStorage.getItem(ACTIVE_INVOICE_STORAGE_KEY)
+
+  if (!storedInvoice) {
+    return DEFAULT_INVOICE
+  }
+
+  try {
+    return JSON.parse(storedInvoice)
+  } catch {
+    window.localStorage.removeItem(ACTIVE_INVOICE_STORAGE_KEY)
+    return DEFAULT_INVOICE
   }
 }

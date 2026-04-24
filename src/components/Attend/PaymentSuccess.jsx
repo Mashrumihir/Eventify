@@ -1,13 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import './css/PaymentSuccess.css'
-import { DEFAULT_INVOICE } from './js/invoiceData'
+import { getActiveInvoice } from './js/invoiceData'
 
-const ticketDetails = {
-  ...DEFAULT_INVOICE,
-  imageUrl: DEFAULT_INVOICE.image,
-}
-
-function buildShareText() {
+function buildShareText(ticketDetails) {
   return [
     'My Eventify ticket is confirmed.',
     `Event: ${ticketDetails.eventTitle}`,
@@ -20,7 +15,7 @@ function buildShareText() {
   ].join('\n')
 }
 
-async function loadTicketImage() {
+async function loadTicketImage(ticketDetails) {
   try {
     const response = await fetch(ticketDetails.imageUrl)
 
@@ -102,13 +97,13 @@ function drawLabeledValue(ctx, label, value, x, y, options = {}) {
   ctx.fillText(value, valueX, y)
 }
 
-async function createInvoicePreviewJpeg() {
+async function createInvoicePreviewJpeg(ticketDetails) {
   const canvas = document.createElement('canvas')
   canvas.width = 1190
   canvas.height = 1010
 
   const ctx = canvas.getContext('2d')
-  const image = await loadTicketImage()
+  const image = await loadTicketImage(ticketDetails)
 
   const page = {
     x: 26,
@@ -360,8 +355,8 @@ function buildPdfBlob(imageAsset) {
   return new Blob(parts, { type: 'application/pdf' })
 }
 
-async function createTicketPdfBlob() {
-  const invoiceJpeg = await createInvoicePreviewJpeg()
+async function createTicketPdfBlob(ticketDetails) {
+  const invoiceJpeg = await createInvoicePreviewJpeg(ticketDetails)
   const bytes = new Uint8Array(await invoiceJpeg.arrayBuffer())
   const dimensions = getJpegDimensions(bytes)
 
@@ -376,8 +371,8 @@ async function createTicketPdfBlob() {
   })
 }
 
-async function downloadTicketPdf() {
-  const pdfBlob = await createTicketPdfBlob()
+async function downloadTicketPdf(ticketDetails) {
+  const pdfBlob = await createTicketPdfBlob(ticketDetails)
   const fileName = `${ticketDetails.bookingId}.pdf`
   const objectUrl = URL.createObjectURL(pdfBlob)
   const link = document.createElement('a')
@@ -395,6 +390,14 @@ async function downloadTicketPdf() {
 
 export default function PaymentSuccess({ onNavigate }) {
   const [actionMessage, setActionMessage] = useState('')
+  const ticketDetails = useMemo(() => {
+    const invoice = getActiveInvoice()
+
+    return {
+      ...invoice,
+      imageUrl: invoice.image,
+    }
+  }, [])
 
   const handleFooterNavigate = (page) => {
     if (typeof onNavigate === 'function') {
@@ -403,13 +406,13 @@ export default function PaymentSuccess({ onNavigate }) {
   }
 
   const handleDownloadPdf = async () => {
-    await downloadTicketPdf()
+    await downloadTicketPdf(ticketDetails)
     setActionMessage('Tax invoice downloaded successfully.')
   }
 
   const handleShareTicket = async () => {
-    const shareText = buildShareText()
-    const pdfBlob = await createTicketPdfBlob()
+    const shareText = buildShareText(ticketDetails)
+    const pdfBlob = await createTicketPdfBlob(ticketDetails)
     const fileName = `${ticketDetails.bookingId}.pdf`
 
     try {

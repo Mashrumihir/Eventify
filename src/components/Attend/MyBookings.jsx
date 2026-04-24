@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './css/MyBookings.css'
-import { createInvoiceFromBooking } from './js/invoiceData'
+import { createInvoiceFromBooking, setActiveInvoiceFromBooking } from './js/invoiceData'
 import { buildInvoicePrintMarkup } from './js/invoicePrintTemplate'
 import { cancelAttendeeBooking, fetchAttendeeBookings } from '../../services/dataService'
 
@@ -197,12 +197,14 @@ export default function MyBookings({ currentUser, onNavigate }) {
   }, [currentUser?.id])
 
   const handleShowBooking = (booking) => {
+    setActiveInvoiceFromBooking(booking, currentUser)
     setSelectedBookingId(booking.id)
     setActionMessage(`Showing ticket for ${booking.title}.`)
     onNavigate?.('taxInvoice')
   }
 
   const handleDownloadBooking = (booking) => {
+    setActiveInvoiceFromBooking(booking, currentUser)
     const opened = openTaxInvoicePrintView(booking)
 
     if (!opened) {
