@@ -102,7 +102,7 @@ export default function App() {
         case 'announcements':
           return <OrgAnnouncements />
         case 'profile':
-          return <OrgProfile />
+          return <OrgProfile currentUser={user} />
         default:
           return <PlaceholderPage title="Organizer Section" />
       }
@@ -290,7 +290,13 @@ export default function App() {
           <header className="app-header">
             <div>
               <div className="user-profile">
-                <div className="user-avatar">{user?.name?.slice(0, 2).toUpperCase() || 'EV'}</div>
+                <div className="user-avatar">
+                  {user?.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    user?.name?.slice(0, 2).toUpperCase() || 'EV'
+                  )}
+                </div>
                 <span className="user-name">{user?.name || 'Eventify User'}</span>
                 <span className="chevron-down">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

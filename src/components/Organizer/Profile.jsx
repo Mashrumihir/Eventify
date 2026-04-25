@@ -1,5 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './css/Profile.css'
+import {
+  fetchAttendeeProfile,
+  updateAttendeeProfile,
+  uploadAvatar,
+} from '../../services/dataService'
 
 const DEFAULT_PROFILE = {
   name: 'Mihir Mashru',
@@ -64,7 +69,7 @@ function CameraIcon() {
   )
 }
 
-export default function Profile() {
+export default function Profile({ currentUser }) {
   const [activeTab, setActiveTab] = useState('edit-profile')
   const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [passwords, setPasswords] = useState(DEFAULT_PASSWORDS)
@@ -75,6 +80,37 @@ export default function Profile() {
     confirmPassword: false,
   })
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadProfile() {
+      if (!currentUser?.id) {
+        return
+      }
+
+      try {
+        const response = await fetchAttendeeProfile(currentUser.id)
+
+        if (isMounted && response.profile) {
+          setProfile((currentProfile) => ({
+            ...currentProfile,
+            ...response.profile,
+          }))
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setMessage(loadError.message || 'Failed to load profile.')
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser?.id])
 
   const handleProfileChange = (event) => {
     const { name, value } = event.target
@@ -90,20 +126,48 @@ export default function Profile() {
     fileInputRef.current?.click()
   }
 
-  const handlePhotoChange = (event) => {
+  const handlePhotoChange = async (event) => {
     const file = event.target.files?.[0]
 
     if (!file) {
       return
     }
 
-    const photoUrl = URL.createObjectURL(file)
-    setProfile((current) => ({ ...current, photo: photoUrl }))
-    setMessage('Profile photo selected successfully.')
+    if (!currentUser?.id) {
+      setMessage('Please login again to upload photo.')
+      return
+    }
+
+    try {
+      setMessage('Uploading photo...')
+      const response = await uploadAvatar(file, currentUser.id)
+      const fullPhotoUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${response.avatarUrl}`
+      setProfile((current) => ({ ...current, photo: fullPhotoUrl }))
+      setMessage('Profile photo uploaded successfully.')
+    } catch (uploadError) {
+      setMessage(uploadError.message || 'Failed to upload photo.')
+    }
   }
 
-  const handleSaveProfile = () => {
-    setMessage('Profile changes saved successfully.')
+  const handleSaveProfile = async () => {
+    if (!currentUser?.id) {
+      setMessage('Please login again to update profile.')
+      return
+    }
+
+    try {
+      await updateAttendeeProfile({
+        userId: currentUser.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        location: profile.location,
+      })
+
+      setMessage('Profile changes saved successfully.')
+    } catch (saveError) {
+      setMessage(saveError.message || 'Failed to save profile changes.')
+    }
   }
 
   const handleResetProfile = () => {

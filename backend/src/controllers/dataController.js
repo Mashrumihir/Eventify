@@ -1479,3 +1479,30 @@ export async function createNotification(req, res) {
     },
   });
 }
+
+export async function uploadUserAvatar(req, res) {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded.' });
+  }
+
+  const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+  await query(
+    `UPDATE users
+     SET avatar_url = $1,
+         updated_at = NOW()
+     WHERE id = $2`,
+    [avatarUrl, userId]
+  );
+
+  res.json({
+    message: 'Avatar uploaded successfully.',
+    avatarUrl: avatarUrl,
+  });
+}

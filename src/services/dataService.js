@@ -135,6 +135,18 @@ export function updateAttendeePassword(payload) {
   });
 }
 
+export function uploadAvatar(file, userId) {
+  const formData = new FormData();
+  formData.append('avatar', file);
+  formData.append('userId', userId);
+
+  return apiRequest('/attendee/profile/avatar', {
+    method: 'POST',
+    body: formData,
+    headers: {},
+  });
+}
+
 export function fetchUsers(params = {}) {
   const searchParams = new URLSearchParams();
 

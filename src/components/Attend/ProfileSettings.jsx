@@ -4,6 +4,7 @@ import {
   fetchAttendeeProfile,
   updateAttendeePassword,
   updateAttendeeProfile,
+  uploadAvatar,
 } from '../../services/dataService'
 
 const DEFAULT_PROFILE = {
@@ -126,16 +127,27 @@ export default function ProfileSettings({ currentUser }) {
     fileInputRef.current?.click()
   }
 
-  const handlePhotoChange = (event) => {
+  const handlePhotoChange = async (event) => {
     const file = event.target.files?.[0]
 
     if (!file) {
       return
     }
 
-    const photoUrl = URL.createObjectURL(file)
-    setProfile((current) => ({ ...current, photo: photoUrl }))
-    setMessage('Profile photo selected successfully.')
+    if (!currentUser?.id) {
+      setMessage('Please login again to upload photo.')
+      return
+    }
+
+    try {
+      setMessage('Uploading photo...')
+      const response = await uploadAvatar(file, currentUser.id)
+      const fullPhotoUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${response.avatarUrl}`
+      setProfile((current) => ({ ...current, photo: fullPhotoUrl }))
+      setMessage('Profile photo uploaded successfully.')
+    } catch (uploadError) {
+      setMessage(uploadError.message || 'Failed to upload photo.')
+    }
   }
 
   const handleSaveProfile = async () => {

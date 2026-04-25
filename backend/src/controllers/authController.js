@@ -3,6 +3,7 @@ import { query } from '../config/db.js';
 import { toDbRole, toFrontendRole } from '../utils/roles.js';
 
 function formatUser(user) {
+  const baseUrl = process.env.CLIENT_URL?.replace('/api', '') || 'http://localhost:5000';
   return {
     id: user.id,
     name: user.full_name,
@@ -11,6 +12,7 @@ function formatUser(user) {
     dbRole: user.role,
     status: user.status,
     createdAt: user.created_at,
+    avatarUrl: user.avatar_url ? `${baseUrl}${user.avatar_url}` : null,
   };
 }
 
@@ -90,7 +92,7 @@ export async function login(req, res) {
   const normalizedEmail = email.trim().toLowerCase();
 
   const result = await query(
-    `SELECT id, full_name, email, password_hash, role, status, created_at
+    `SELECT id, full_name, email, password_hash, role, status, created_at, avatar_url
      FROM users
      WHERE email = $1
      LIMIT 1`,

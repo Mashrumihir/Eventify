@@ -15,7 +15,9 @@ import {
 	updateAttendeePassword,
 	updateAttendeeProfile,
 	updateAttendeeReview,
+	uploadUserAvatar,
 } from '../controllers/dataController.js';
+import { uploadAvatar } from '../middleware/upload.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();
@@ -35,5 +37,6 @@ router.delete('/reviews/:id', asyncHandler(deleteAttendeeReview));
 router.get('/profile', asyncHandler(getAttendeeProfile));
 router.patch('/profile', asyncHandler(updateAttendeeProfile));
 router.patch('/profile/password', asyncHandler(updateAttendeePassword));
+router.post('/profile/avatar', uploadAvatar, asyncHandler(uploadUserAvatar));
 
 export default router;
