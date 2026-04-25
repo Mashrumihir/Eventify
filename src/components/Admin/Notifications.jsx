@@ -1,59 +1,121 @@
-import React from 'react'
-import { BsBell, BsCalendarEvent, BsCheckCircle, BsMegaphone } from 'react-icons/bs'
+import { useEffect, useState } from 'react'
+import { BsBell, BsCalendarEvent, BsCheckCircle, BsMegaphone, BsExclamationTriangle, BsPerson, BsCreditCard, BsGear } from 'react-icons/bs'
 import './css/Notifications.css'
+import {
+  fetchAdminNotifications,
+  markAdminNotificationRead,
+  markAllAdminNotificationsRead,
+} from '../../services/dataService'
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    type: 'confirmed',
-    title: 'Booking Confirmed',
-    content: 'Your ticket for "Tech Conference 2024" has been confirmed.',
-    time: '1 week ago',
-    status: 'Unread',
-    Icon: BsCheckCircle,
-  },
-  {
-    id: 2,
-    type: 'reminder',
-    title: 'Event Reminder',
-    content: '"Digital Marketing Summit" starts in 2 days.',
-    time: '1 week ago',
-    status: 'Unread',
-    Icon: BsCalendarEvent,
-  },
-  {
-    id: 3,
-    type: 'announcement',
-    title: 'Venue Change for Summer Festival',
-    content:
-      'Due to weather conditions, the venue has been moved to Indoor Arena. All ticket holders will receive updated location details via email. The event timing remains the same.',
-    time: '1 week ago',
-    status: 'Unread',
-    Icon: BsMegaphone,
-  },
-  {
-    id: 4,
-    type: 'announcement',
-    title: 'Early Bird Tickets Available',
-    content:
-      'Get 20% off on tickets purchased before March 1st! Limited time offer for our most anticipated technology conference of the year. Secure your spot today and save big.',
-    time: '1 week ago',
-    status: 'Unread',
-    Icon: BsMegaphone,
-  },
-  {
-    id: 5,
-    type: 'announcement',
-    title: 'New VIP Package Launched',
-    content:
-      'Exclusive VIP packages now available with backstage access and premium seating. Includes meet and greet with speakers, premium networking lounge access, and complimentary refreshments.',
-    time: '1 week ago',
-    status: 'Unread',
-    Icon: BsMegaphone,
-  },
-]
+function getRelativeTime(value) {
+  const now = Date.now()
+  const createdAt = new Date(value).getTime()
+  const diffHours = Math.max(1, Math.floor((now - createdAt) / (1000 * 60 * 60)))
 
-export default function Notifications() {
+  if (diffHours < 24) {
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+  }
+
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+}
+
+function getNotificationIcon(type) {
+  const iconMap = {
+    success: BsCheckCircle,
+    confirmed: BsCheckCircle,
+    warning: BsExclamationTriangle,
+    danger: BsExclamationTriangle,
+    alert: BsExclamationTriangle,
+    reminder: BsCalendarEvent,
+    event: BsCalendarEvent,
+    announcement: BsMegaphone,
+    promotion: BsMegaphone,
+    user: BsPerson,
+    booking: BsCheckCircle,
+    payment: BsCreditCard,
+    system: BsGear,
+    general: BsBell,
+  }
+  return iconMap[type] || BsBell
+}
+
+export default function Notifications({ currentUser }) {
+  const [notifications, setNotifications] = useState([])
+  const [filter, setFilter] = useState('All')
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadNotifications() {
+      if (!currentUser?.id) {
+        if (isMounted) {
+          setNotifications([])
+          setIsLoading(false)
+        }
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError('')
+        const response = await fetchAdminNotifications(currentUser.id)
+
+        if (isMounted) {
+          setNotifications(response.notifications || [])
+        }
+      } catch (loadError) {
+        if (isMounted) {
+          setError(loadError.message || 'Failed to load notifications.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadNotifications()
+
+    return () => {
+      isMounted = false
+    }
+  }, [currentUser?.id])
+
+  const unreadCount = notifications.filter(n => !n.isRead).length
+
+  const filteredNotifications = filter === 'All'
+    ? notifications
+    : notifications.filter(n => n.type?.toLowerCase() === filter.toLowerCase())
+
+  const markAllAsRead = async () => {
+    if (!currentUser?.id) {
+      return
+    }
+
+    await markAllAdminNotificationsRead(currentUser.id)
+    setNotifications((currentNotifications) =>
+      currentNotifications.map((notification) => ({ ...notification, isRead: true }))
+    )
+  }
+
+  const markAsRead = async (id) => {
+    const target = notifications.find((notification) => notification.id === id)
+
+    if (!target || target.isRead || !currentUser?.id) {
+      return
+    }
+
+    await markAdminNotificationRead(id, currentUser.id)
+    setNotifications((currentNotifications) =>
+      currentNotifications.map((notification) =>
+        notification.id === id ? { ...notification, isRead: true } : notification
+      )
+    )
+  }
+
   return (
     <div className="admin-page-layout">
       <div className="admin-welcome-header">
@@ -64,45 +126,75 @@ export default function Notifications() {
       <div className="admin-content-area">
         <div className="nc-header-section">
           <h2 className="admin-section-title" style={{ color: '#1e3a8a' }}>Notifications Center</h2>
-          <p className="admin-section-subtitle">Stay updated with all platform activities and announcements.</p>
+          <p className="admin-section-subtitle">
+            You have {unreadCount} unread notification{unreadCount !== 1 && 's'}
+          </p>
         </div>
+
+        {error ? <p className="admin-section-subtitle" style={{ color: '#ef4444' }}>{error}</p> : null}
 
         <div className="nc-list-container">
           <div className="nc-list-header">
             <h3>Recent Notifications</h3>
 
             <div className="nc-list-actions">
-              <select className="nc-filter-select" defaultValue="All" aria-label="Filter notifications">
+              <select
+                className="nc-filter-select"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                aria-label="Filter notifications"
+              >
                 <option value="All">All</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Reminder">Reminder</option>
-                <option value="Announcement">Announcement</option>
+                <option value="success">Success</option>
+                <option value="warning">Warning</option>
+                <option value="announcement">Announcement</option>
+                <option value="user">User Activity</option>
+                <option value="booking">Booking</option>
+                <option value="payment">Payment</option>
+                <option value="system">System</option>
               </select>
 
-              <button type="button" className="nc-mark-read-btn">
+              <button type="button" className="nc-mark-read-btn" onClick={markAllAsRead}>
                 Mark all as read
               </button>
             </div>
           </div>
 
           <div className="nc-list">
-            {NOTIFICATIONS.map(({ id, type, title, content, time, status, Icon: NotificationIcon }) => (
-              <div key={id} className={`nc-item nc-item-${type}`}>
-                <div className={`nc-item-icon nc-item-icon-${type}`}>
-                  {React.createElement(NotificationIcon, { size: 14 })}
-                </div>
+            {isLoading ? (
+              <div className="nc-empty">Loading notifications...</div>
+            ) : filteredNotifications.length > 0 ? (
+              filteredNotifications.map((notification) => {
+                const NotificationIcon = getNotificationIcon(notification.type)
+                return (
+                  <div
+                    key={notification.id}
+                    className={`nc-item nc-item-${notification.type} ${notification.isRead ? '' : 'unread'}`}
+                    onClick={() => markAsRead(notification.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className={`nc-item-icon nc-item-icon-${notification.type}`}>
+                      <NotificationIcon size={14} />
+                    </div>
 
-                <div className="nc-item-content">
-                  <div className="nc-item-top-row">
-                    <h4>{title}</h4>
-                    <span className="nc-item-badge">{status}</span>
+                    <div className="nc-item-content">
+                      <div className="nc-item-top-row">
+                        <h4>{notification.title}</h4>
+                        {!notification.isRead && <span className="nc-item-badge">Unread</span>}
+                      </div>
+
+                      <p className="nc-item-text">{notification.message}</p>
+                      <span className="nc-item-time">{getRelativeTime(notification.createdAt)}</span>
+                    </div>
                   </div>
-
-                  <p className="nc-item-text">{content}</p>
-                  <span className="nc-item-time">{time}</span>
-                </div>
+                )
+              })
+            ) : (
+              <div className="nc-empty">
+                <BsBell size={48} style={{ color: '#cbd5e1', marginBottom: '16px' }} />
+                <p>No notifications found.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

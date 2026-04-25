@@ -650,7 +650,7 @@ export async function listAttendeeWishlist(req, res) {
      LEFT JOIN venues v ON v.id = e.venue_id
      LEFT JOIN reviews r ON r.event_id = e.id
      WHERE w.user_id = $1
-     GROUP BY e.id, c.name, v.name, v.city, v.state
+     GROUP BY e.id, c.name, v.name, v.city, v.state, w.created_at
      ORDER BY w.created_at DESC`,
     [userId]
   );
@@ -1384,4 +1384,98 @@ export async function updateOrganizerApplication(req, res) {
   }
 
   res.json({ message: 'Organizer application updated successfully.' });
+}
+
+export async function listAdminNotifications(req, res) {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `SELECT id, title, message, type, is_read, created_at
+     FROM notifications
+     WHERE user_id = $1
+     ORDER BY created_at DESC`,
+    [userId]
+  );
+
+  res.json({
+    notifications: result.rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      message: row.message,
+      type: row.type || 'general',
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+    })),
+  });
+}
+
+export async function markAdminNotificationAsRead(req, res) {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  const result = await query(
+    `UPDATE notifications
+     SET is_read = TRUE
+     WHERE id = $1
+       AND user_id = $2
+     RETURNING id`,
+    [id, userId]
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ message: 'Notification not found.' });
+  }
+
+  return res.json({ message: 'Notification marked as read.' });
+}
+
+export async function markAllAdminNotificationsAsRead(req, res) {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User id is required.' });
+  }
+
+  await query(
+    `UPDATE notifications
+     SET is_read = TRUE
+     WHERE user_id = $1`,
+    [userId]
+  );
+
+  return res.json({ message: 'All notifications marked as read.' });
+}
+
+export async function createNotification(req, res) {
+  const { userId, title, message, type = 'general' } = req.body;
+
+  if (!userId || !title || !message) {
+    return res.status(400).json({ message: 'User id, title, and message are required.' });
+  }
+
+  const result = await query(
+    `INSERT INTO notifications (user_id, title, message, type)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, title, message, type, is_read, created_at`,
+    [userId, title, message, type]
+  );
+
+  res.status(201).json({
+    notification: {
+      id: result.rows[0].id,
+      title: result.rows[0].title,
+      message: result.rows[0].message,
+      type: result.rows[0].type,
+      isRead: Boolean(result.rows[0].is_read),
+      createdAt: result.rows[0].created_at,
+    },
+  });
 }

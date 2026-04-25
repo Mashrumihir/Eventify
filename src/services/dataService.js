@@ -194,3 +194,28 @@ export function updateOrganizerApplication(applicationId, status) {
     body: JSON.stringify({ status }),
   });
 }
+
+export function fetchAdminNotifications(userId) {
+  return apiRequest(`/admin/notifications?userId=${encodeURIComponent(userId)}`);
+}
+
+export function markAdminNotificationRead(notificationId, userId) {
+  return apiRequest(`/admin/notifications/${encodeURIComponent(notificationId)}/read`, {
+    method: 'PATCH',
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export function markAllAdminNotificationsRead(userId) {
+  return apiRequest('/admin/notifications/read-all', {
+    method: 'PATCH',
+    body: JSON.stringify({ userId }),
+  });
+}
+
+export function createAdminNotification(payload) {
+  return apiRequest('/admin/notifications', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
