@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { FiCalendar, FiLock, FiMapPin, FiTag, FiUsers } from 'react-icons/fi'
-import { processPayment } from '../../../services/dataService'
-import { setActiveInvoiceFromCheckout } from '../js/invoiceData'
-import './CompletePayment.css'
+import { processPayment } from '../../services/dataService'
+import { setActiveInvoiceFromCheckout } from './js/invoiceData'
+import './css/CompletePayment.css'
 
 function formatMoney(value) {
   return `\u20B9${Number(value || 0).toFixed(2)}`
