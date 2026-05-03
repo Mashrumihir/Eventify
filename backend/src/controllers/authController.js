@@ -3,6 +3,7 @@ import { query } from '../config/db.js';
 import { toDbRole, toFrontendRole } from '../utils/roles.js';
 
 function formatUser(user) {
+
   const baseUrl = process.env.CLIENT_URL?.replace('/api', '') || 'http://localhost:5000';
   return {
     id: user.id,

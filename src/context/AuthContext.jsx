@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { loginUser, registerUser } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -14,14 +14,16 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      return JSON.parse(storedUser);
+      const parsed = JSON.parse(storedUser);
+      console.log('Loaded user from localStorage:', parsed);
+      return parsed;
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
       return null;
     }
   });
 
-  const persistUser = (nextUser) => {
+  const persistUser = useCallback((nextUser) => {
     setUser(nextUser);
 
     if (nextUser) {
@@ -29,35 +31,49 @@ export function AuthProvider({ children }) {
     } else {
       window.localStorage.removeItem(STORAGE_KEY);
     }
-  };
+  }, []);
 
-  const login = async (payload) => {
+  const login = useCallback(async (payload) => {
     const response = await loginUser(payload);
     persistUser(response.user);
     return response.user;
-  };
+  }, [persistUser]);
 
-  const register = async (payload) => {
+  const register = useCallback(async (payload) => {
     const response = await registerUser(payload);
-    persistUser(response.user);
     return response.user;
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     persistUser(null);
-  };
+  }, [persistUser]);
+
+  const updateUserAvatar = useCallback((avatarUrl) => {
+    setUser((currentUser) => {
+      if (!currentUser || currentUser.avatarUrl === avatarUrl) {
+        return currentUser;
+      }
+
+      const updatedUser = { ...currentUser, avatarUrl };
+      console.log('Updating user avatar:', avatarUrl);
+      console.log('Updated user:', updatedUser);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
+
+  const value = useMemo(() => ({
+    user,
+    isAuthenticated: Boolean(user),
+    isBootstrapped: true,
+    login,
+    register,
+    logout,
+    updateUserAvatar,
+  }), [login, logout, register, updateUserAvatar, user]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: Boolean(user),
-        isBootstrapped: true,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

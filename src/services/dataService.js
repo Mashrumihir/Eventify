@@ -147,6 +147,20 @@ export function uploadAvatar(file, userId) {
   });
 }
 
+export function createBooking(payload) {
+  return apiRequest('/attendee/bookings', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function processPayment(payload) {
+  return apiRequest('/attendee/payments', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export function fetchUsers(params = {}) {
   const searchParams = new URLSearchParams();
 

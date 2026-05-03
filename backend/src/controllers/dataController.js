@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { query } from '../config/db.js';
+import { query, pool } from '../config/db.js';
 import { toDbRole, toFrontendRole } from '../utils/roles.js';
 
 function formatCurrencyValue(value) {
@@ -931,6 +931,11 @@ export async function getAttendeeProfile(req, res) {
   }
 
   const row = result.rows[0];
+  const baseUrl = process.env.CLIENT_URL?.replace('/api', '') || 'http://localhost:5000';
+  const photoUrl = row.avatar_url ? `${baseUrl}${row.avatar_url}` : '';
+
+  console.log('DB avatar_url:', row.avatar_url);
+  console.log('Generated photoUrl:', photoUrl);
 
   return res.json({
     profile: {
@@ -939,7 +944,7 @@ export async function getAttendeeProfile(req, res) {
       email: row.email,
       phone: row.phone || '',
       location: [row.city, row.state].filter(Boolean).join(', '),
-      photo: row.avatar_url || '',
+      photo: photoUrl,
       dob: '',
       bio: '',
     },
@@ -1505,4 +1510,216 @@ export async function uploadUserAvatar(req, res) {
     message: 'Avatar uploaded successfully.',
     avatarUrl: avatarUrl,
   });
+}
+
+export async function createBooking(req, res) {
+  const { userId, eventId, ticketType, quantity, totalAmount } = req.body;
+
+  if (!userId || !eventId || !ticketType || !quantity || !totalAmount) {
+    return res.status(400).json({ message: 'All booking fields are required.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Log the values being inserted
+    console.log('Creating booking with:', { userId, eventId, ticketType, quantity, totalAmount });
+
+    // Try to handle both UUID and integer IDs
+    let eventIdFormatted = eventId;
+    let userIdFormatted = userId;
+    
+    // If IDs don't look like UUIDs, try to cast as integer
+    if (!eventId.includes('-')) {
+      eventIdFormatted = parseInt(eventId, 10);
+    }
+    if (!userId.includes('-')) {
+      userIdFormatted = parseInt(userId, 10);
+    }
+    
+    console.log('Formatted IDs:', { eventIdFormatted, userIdFormatted });
+
+    // Create booking - let PostgreSQL handle the casting
+    const bookingResult = await client.query(
+      `INSERT INTO bookings (event_id, user_id, status, total_amount, created_at, updated_at)
+       VALUES ($1, $2, 'pending', $3, NOW(), NOW())
+       RETURNING id, event_id, user_id, status, total_amount, created_at`,
+      [eventIdFormatted, userIdFormatted, totalAmount]
+    );
+
+    const booking = bookingResult.rows[0];
+    console.log('Booking created:', booking);
+
+    // Get ticket type ID - handle both integer and UUID event IDs
+    let ticketTypeResult;
+    if (typeof eventIdFormatted === 'number' || !eventId.includes('-')) {
+      // Try with integer event_id
+      ticketTypeResult = await client.query(
+        `SELECT id, price FROM ticket_types 
+         WHERE event_id = $1 
+         AND (name ILIKE $2 OR name ILIKE $3 OR name ILIKE $4) 
+         LIMIT 1`,
+        [eventIdFormatted, ticketType, `%${ticketType}%`, ticketType.replace(/([A-Z])/g, ' $1').trim()]
+      );
+    } else {
+      // Try with UUID event_id
+      ticketTypeResult = await client.query(
+        `SELECT id, price FROM ticket_types 
+         WHERE event_id = $1::uuid 
+         AND (name ILIKE $2 OR name ILIKE $3 OR name ILIKE $4) 
+         LIMIT 1`,
+        [eventId, ticketType, `%${ticketType}%`, ticketType.replace(/([A-Z])/g, ' $1').trim()]
+      );
+    }
+
+    let ticketTypeId = null;
+    let unitPrice = totalAmount / quantity;
+
+    if (ticketTypeResult.rowCount > 0) {
+      ticketTypeId = ticketTypeResult.rows[0].id;
+      unitPrice = ticketTypeResult.rows[0].price;
+      console.log('Found ticket type:', ticketTypeId, 'price:', unitPrice);
+    } else {
+      console.log('No ticket type found for event:', eventId, 'ticket:', ticketType);
+    }
+
+    // Create booking item
+    await client.query(
+      `INSERT INTO booking_items (booking_id, ticket_type_id, quantity, unit_price, total_price)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [booking.id, ticketTypeId, quantity, unitPrice, totalAmount]
+    );
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'Booking created successfully.',
+      booking: {
+        id: booking.id,
+        eventId: booking.event_id,
+        userId: booking.user_id,
+        status: booking.status,
+        totalAmount: booking.total_amount,
+        createdAt: booking.created_at,
+        ticketType,
+        quantity,
+      },
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Create booking error:', error);
+    console.error('Error details:', error.message, error.code);
+    res.status(500).json({ message: `Failed to create booking: ${error.message}` });
+  } finally {
+    client.release();
+  }
+}
+
+export async function getEventById(req, res) {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ message: 'Event ID is required.' });
+  }
+
+  try {
+    const result = await query(
+      `SELECT 
+        e.id, e.title, e.description, e.start_at, e.end_at,
+        e.base_price, e.banner_url, e.status,
+        c.name AS category_name,
+        v.name AS venue_name, v.city AS venue_city,
+        o.full_name AS organizer_name
+      FROM events e
+      LEFT JOIN categories c ON c.id = e.category_id
+      LEFT JOIN venues v ON v.id = e.venue_id
+      LEFT JOIN users o ON o.id = e.organizer_id
+      WHERE e.id = $1
+      LIMIT 1`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Event not found.' });
+    }
+
+    const event = result.rows[0];
+    res.json({
+      event: {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        startAt: event.start_at,
+        endAt: event.end_at,
+        basePrice: event.base_price,
+        bannerUrl: event.banner_url,
+        status: event.status,
+        categoryName: event.category_name,
+        venueName: event.venue_name,
+        venueCity: event.venue_city,
+        organizerName: event.organizer_name,
+      },
+    });
+  } catch (error) {
+    console.error('Get event error:', error);
+    res.status(500).json({ message: 'Failed to fetch event.' });
+  }
+}
+
+export async function processPayment(req, res) {
+  const { bookingId, userId, amount, paymentMethod } = req.body;
+
+  if (!bookingId || !userId || !amount) {
+    return res.status(400).json({ message: 'Booking ID, user ID, and amount are required.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    console.log('Processing payment:', { bookingId, userId, amount, paymentMethod });
+
+    // Create payment record with UUID casting
+    const paymentResult = await client.query(
+      `INSERT INTO payments (booking_id, provider, amount, payment_status, paid_at, created_at)
+       VALUES ($1::uuid, $2, $3, 'success', NOW(), NOW())
+       RETURNING id, booking_id, amount, payment_status, paid_at`,
+      [bookingId, paymentMethod || 'manual', amount]
+    );
+
+    console.log('Payment record created:', paymentResult.rows[0]);
+
+    // Update booking status to confirmed
+    await client.query(
+      `UPDATE bookings 
+       SET status = 'confirmed', updated_at = NOW()
+       WHERE id = $1::uuid`,
+      [bookingId]
+    );
+
+    console.log('Booking status updated to confirmed');
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'Payment processed successfully.',
+      payment: {
+        id: paymentResult.rows[0].id,
+        bookingId: paymentResult.rows[0].booking_id,
+        amount: paymentResult.rows[0].amount,
+        status: paymentResult.rows[0].payment_status,
+        paidAt: paymentResult.rows[0].paid_at,
+      },
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Process payment error:', error);
+    console.error('Error details:', error.message, error.code);
+    res.status(500).json({ message: `Failed to process payment: ${error.message}` });
+  } finally {
+    client.release();
+  }
 }

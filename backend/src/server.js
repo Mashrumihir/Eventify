@@ -1,4 +1,3 @@
-/* global process */
 import app from './app.js';
 import { pool } from './config/db.js';
 import { env } from './config/env.js';

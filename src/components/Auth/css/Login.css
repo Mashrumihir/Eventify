@@ -104,7 +104,7 @@
 
 .auth-input-wrapper input {
   width: 100%;
-  padding: 12px 14px 12px 42px;
+  padding: 12px 46px 12px 42px;
   background: rgba(255, 255, 255, 0.1); 
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
@@ -126,19 +126,29 @@
 
 .auth-btn-eye {
   position: absolute;
-  right: 14px;
+  right: 8px;
   background: transparent;
   border: none;
+  border-radius: 8px;
   padding: 0;
+  width: 34px;
+  height: 34px;
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .auth-btn-eye:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
+}
+
+.auth-btn-eye:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
 }
 
 .auth-form-options {

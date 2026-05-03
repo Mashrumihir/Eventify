@@ -3,6 +3,10 @@ import './css/Register.css'
 
 export default function Register({ onRegister, onNavigateToLogin }) {
   const [role, setRole] = useState('attend') // 'attend', 'organizer', 'admin'
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    password: false,
+    confirmPassword: false,
+  })
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +21,13 @@ export default function Register({ onRegister, onNavigateToLogin }) {
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const togglePasswordVisibility = (field) => {
+    setVisiblePasswords((current) => ({
+      ...current,
+      [field]: !current[field],
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -126,30 +137,42 @@ export default function Register({ onRegister, onNavigateToLogin }) {
           <div className="auth-input-wrapper">
             <svg className="auth-input-icon lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input 
-              type="password" 
+              type={visiblePasswords.password ? 'text' : 'password'} 
               name="password"
               placeholder="Create a password" 
               value={formData.password}
               onChange={handleChange}
               required
             />
-            <button type="button" className="auth-btn-eye">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <button
+              type="button"
+              className="auth-btn-eye"
+              onClick={() => togglePasswordVisibility('password')}
+              aria-label={visiblePasswords.password ? 'Hide password' : 'Show password'}
+              title={visiblePasswords.password ? 'Hide password' : 'Show password'}
+            >
+              <EyeIcon open={visiblePasswords.password} />
             </button>
           </div>
 
           <div className="auth-input-wrapper">
             <svg className="auth-input-icon lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input 
-              type="password" 
+              type={visiblePasswords.confirmPassword ? 'text' : 'password'} 
               name="confirmPassword"
               placeholder="Confirm your password" 
               value={formData.confirmPassword}
               onChange={handleChange}
               required
             />
-            <button type="button" className="auth-btn-eye">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <button
+              type="button"
+              className="auth-btn-eye"
+              onClick={() => togglePasswordVisibility('confirmPassword')}
+              aria-label={visiblePasswords.confirmPassword ? 'Hide password' : 'Show password'}
+              title={visiblePasswords.confirmPassword ? 'Hide password' : 'Show password'}
+            >
+              <EyeIcon open={visiblePasswords.confirmPassword} />
             </button>
           </div>
 
@@ -163,5 +186,25 @@ export default function Register({ onRegister, onNavigateToLogin }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function EyeIcon({ open }) {
+  if (open) {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94" />
+        <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-3.17 4.19" />
+        <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24" />
+        <path d="M1 1l22 22" />
+      </svg>
+    )
+  }
+
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   )
 }

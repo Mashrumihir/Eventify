@@ -1,4 +1,3 @@
-/* global process */
 import bcrypt from 'bcryptjs';
 import { pool } from '../src/config/db.js';
 

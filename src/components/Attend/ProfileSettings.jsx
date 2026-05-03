@@ -63,14 +63,14 @@ function EyeIcon({ open }) {
 
 function CameraIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
       <circle cx="12" cy="13" r="4" />
     </svg>
   )
 }
 
-export default function ProfileSettings({ currentUser }) {
+export default function ProfileSettings({ currentUser, onAvatarUpdate }) {
   const [activeTab, setActiveTab] = useState('edit-profile')
   const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [passwords, setPasswords] = useState(DEFAULT_PASSWORDS)
@@ -86,18 +86,32 @@ export default function ProfileSettings({ currentUser }) {
     let isMounted = true
 
     async function loadProfile() {
+      console.log('=== Profile Load Debug ===')
+      console.log('currentUser:', currentUser)
+      console.log('currentUser.id:', currentUser?.id)
       if (!currentUser?.id) {
+        console.log('No currentUser.id, skipping profile load')
         return
       }
 
       try {
+        console.log('Fetching profile for userId:', currentUser.id)
         const response = await fetchAttendeeProfile(currentUser.id)
+        console.log('Profile response:', response)
+        console.log('Profile photo from API:', response.profile?.photo)
 
         if (isMounted && response.profile) {
+          console.log('Setting profile state with photo:', response.profile.photo)
+          console.log('Photo URL length:', response.profile.photo?.length)
+          console.log('Photo URL starts with http:', response.profile.photo?.startsWith('http'))
           setProfile((currentProfile) => ({
             ...currentProfile,
             ...response.profile,
           }))
+          if (response.profile.photo && onAvatarUpdate) {
+            console.log('Calling onAvatarUpdate with:', response.profile.photo)
+            onAvatarUpdate(response.profile.photo)
+          }
         }
       } catch (loadError) {
         if (isMounted) {
@@ -111,7 +125,7 @@ export default function ProfileSettings({ currentUser }) {
     return () => {
       isMounted = false
     }
-  }, [currentUser?.id])
+  }, [currentUser, onAvatarUpdate])
 
   const handleProfileChange = (event) => {
     const { name, value } = event.target
@@ -142,8 +156,14 @@ export default function ProfileSettings({ currentUser }) {
     try {
       setMessage('Uploading photo...')
       const response = await uploadAvatar(file, currentUser.id)
-      const fullPhotoUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${response.avatarUrl}`
+      console.log('Upload response:', response)
+      const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+      const fullPhotoUrl = `${baseUrl}${response.avatarUrl}`
+      console.log('Base URL:', baseUrl)
+      console.log('Avatar path:', response.avatarUrl)
+      console.log('Full photo URL:', fullPhotoUrl)
       setProfile((current) => ({ ...current, photo: fullPhotoUrl }))
+      onAvatarUpdate?.(fullPhotoUrl)
       setMessage('Profile photo uploaded successfully.')
     } catch (uploadError) {
       setMessage(uploadError.message || 'Failed to upload photo.')
@@ -288,20 +308,33 @@ function EditProfileTab({
   onSave,
   profile,
 }) {
+  console.log('=== Render Debug ===')
+  console.log('profile.photo:', profile.photo)
+  console.log('profile.photo is truthy:', !!profile.photo)
+  console.log('profile.name:', profile.name)
   return (
     <div className="org-tab-pane">
       <h2 className="org-pane-title">Edit Profile</h2>
 
       <div className="org-profile-photo-section">
-        <div className="org-photo-avatar">
+        <div className="org-photo-avatar" onClick={onPhotoClick} title="Click to change photo">
           {profile.photo ? (
-            <img src={profile.photo} alt={profile.name} className="org-photo-image" />
+            <img
+              src={profile.photo}
+              alt={profile.name}
+              className="org-photo-image"
+              onError={(e) => {
+                console.error('Profile photo failed to load:', profile.photo)
+                e.target.style.display = 'none'
+                e.target.parentElement.textContent = profile.name.slice(0, 2).toUpperCase()
+              }}
+            />
           ) : (
             profile.name.slice(0, 2).toUpperCase()
           )}
-          <button className="org-photo-camera" onClick={onPhotoClick} type="button">
+          <div className="org-photo-camera" title="Change photo">
             <CameraIcon />
-          </button>
+          </div>
           <input
             ref={fileInputRef}
             className="org-hidden-input"

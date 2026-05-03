@@ -47,17 +47,24 @@ import TermsOfService from './components/Home/TermsOfService/TermsOfService'
 import { useAuth } from './context/AuthContext'
 
 export default function App() {
-  const { user, isAuthenticated, isBootstrapped, login, register, logout } = useAuth()
+  const { user, isAuthenticated, isBootstrapped, login, register, logout, updateUserAvatar } = useAuth()
   const [appMode, setAppMode] = useState(() => getModeFromRole(user?.role))
   const [activePage, setActivePage] = useState('dashboard')
   const [authMode, setAuthMode] = useState('home')
   const [organizerEditorState, setOrganizerEditorState] = useState({ mode: 'create', eventData: null })
+  const [navigationState, setNavigationState] = useState({})
   const isOrganizerUser = user?.role === 'organizer' || user?.role === 'organize'
 
   const handleLogout = () => {
     logout()
     setAuthMode('login')
     setActivePage('dashboard')
+    setNavigationState({})
+  }
+
+  const handleNavigate = (page, state = {}) => {
+    setNavigationState(state)
+    setActivePage(page)
   }
 
   const handleOrganizerNavigate = (page) => {
@@ -102,7 +109,7 @@ export default function App() {
         case 'announcements':
           return <OrgAnnouncements />
         case 'profile':
-          return <OrgProfile currentUser={user} />
+          return <OrgProfile currentUser={user} onAvatarUpdate={updateUserAvatar} />
         default:
           return <PlaceholderPage title="Organizer Section" />
       }
@@ -137,17 +144,19 @@ export default function App() {
       case 'dashboard':
         return <Dashboard currentUser={user} />
       case 'browse':
-        return <BrowseEvents currentUser={user} onNavigate={setActivePage} />
+        return <BrowseEvents currentUser={user} onNavigate={handleNavigate} />
       case 'eventDetails':
-        return <EventDetails onNavigate={setActivePage} />
+        return <EventDetails onNavigate={handleNavigate} currentUser={user} />
+      case 'payment':
+        return <Payments currentUser={user} onNavigate={handleNavigate} booking={navigationState.booking} eventData={navigationState.eventData} />
       case 'paymentSuccess':
-        return <PaymentSuccess currentUser={user} onNavigate={setActivePage} />
+        return <PaymentSuccess currentUser={user} onNavigate={handleNavigate} />
       case 'payments':
-        return <Payments currentUser={user} />
+        return <Payments currentUser={user} onNavigate={handleNavigate} />
       case 'taxInvoice':
-        return <TaxInvoice currentUser={user} onNavigate={setActivePage} />
+        return <TaxInvoice currentUser={user} onNavigate={handleNavigate} />
       case 'bookings':
-        return <MyBookings currentUser={user} onNavigate={setActivePage} />
+        return <MyBookings currentUser={user} onNavigate={handleNavigate} />
       case 'wishlist':
         return <Wishlist currentUser={user} />
       case 'notifications':
@@ -155,7 +164,7 @@ export default function App() {
       case 'reviews':
         return <Reviews currentUser={user} />
       case 'profile':
-        return <ProfileSettings currentUser={user} />
+        return <ProfileSettings currentUser={user} onAvatarUpdate={updateUserAvatar} />
       default:
         return <Dashboard currentUser={user} />
     }
@@ -228,9 +237,8 @@ export default function App() {
         <Register
           onNavigateToLogin={() => setAuthMode('login')}
           onRegister={async (payload) => {
-            const nextUser = await register(payload)
-            setAppMode(getModeFromRole(nextUser.role))
-            setActivePage('dashboard')
+            await register(payload)
+            setAuthMode('login')
           }}
         />
       )
@@ -292,7 +300,16 @@ export default function App() {
               <div className="user-profile">
                 <div className="user-avatar">
                   {user?.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.error('Avatar failed to load:', user.avatarUrl)
+                        e.target.style.display = 'none'
+                        e.target.parentElement.textContent = user?.name?.slice(0, 2).toUpperCase() || 'EV'
+                      }}
+                    />
                   ) : (
                     user?.name?.slice(0, 2).toUpperCase() || 'EV'
                   )}

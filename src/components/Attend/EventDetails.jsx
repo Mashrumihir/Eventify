@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import './css/EventDetails.css'
+import { createBooking } from '../../services/dataService'
 
-export default function EventDetails({ onNavigate }) {
+export default function EventDetails({ onNavigate, currentUser, eventData }) {
   const [selectedTicket, setSelectedTicket] = useState('regular')
   const [quantity, setQuantity] = useState(1)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState('')
 
   const ticketPrices = {
     earlyBird: 79,
@@ -12,6 +15,51 @@ export default function EventDetails({ onNavigate }) {
   }
 
   const total = ticketPrices[selectedTicket] * quantity
+
+  const handleProceedToPayment = async () => {
+    setError('')
+
+    if (!currentUser?.id) {
+      setError('Please login to proceed with booking.')
+      setTimeout(() => onNavigate('login'), 1500)
+      return
+    }
+
+    if (quantity < 1) {
+      setError('Please select at least 1 ticket.')
+      return
+    }
+
+    setIsProcessing(true)
+
+    try {
+      // Ensure IDs are strings (for UUID compatibility)
+      const userId = String(currentUser.id)
+      const eventId = eventData?.id ? String(eventData.id) : 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' // Use sample event UUID
+
+      const bookingPayload = {
+        userId: userId,
+        eventId: eventId,
+        ticketType: selectedTicket,
+        quantity: quantity,
+        totalAmount: total,
+      }
+
+      console.log('Creating booking with payload:', bookingPayload)
+      console.log('User ID type:', typeof userId, 'Event ID type:', typeof eventId)
+
+      const response = await createBooking(bookingPayload)
+      console.log('Booking created successfully:', response.booking)
+
+      onNavigate('payment', { booking: response.booking, eventData })
+    } catch (err) {
+      console.error('Booking error:', err)
+      console.error('Full error:', err.message, err.stack)
+      setError(err.message || 'Failed to create booking. Please try again.')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   return (
     <div className="event-details-layout">
@@ -176,8 +224,19 @@ export default function EventDetails({ onNavigate }) {
             </div>
           </div>
 
-          <button className="ed-btn-primary ed-proceed-btn" onClick={() => onNavigate('payment')}>
-            Proceed to Payment
+          {error && (
+            <div className="ed-error-message" style={{ color: '#ef4444', fontSize: '14px', marginBottom: '12px', textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            className="ed-btn-primary ed-proceed-btn"
+            onClick={handleProceedToPayment}
+            disabled={isProcessing}
+            style={{ opacity: isProcessing ? 0.7 : 1, cursor: isProcessing ? 'not-allowed' : 'pointer' }}
+          >
+            {isProcessing ? 'Processing...' : 'Proceed to Payment'}
           </button>
         </div>
       </div>

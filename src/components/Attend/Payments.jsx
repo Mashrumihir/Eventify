@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import './css/Payments.css'
-import { fetchAttendeePayments } from '../../services/dataService'
+import { fetchAttendeePayments, processPayment } from '../../services/dataService'
 
 function formatMoney(value) {
   return `\u20B9${Number(value || 0).toLocaleString('en-IN', {
@@ -51,7 +51,7 @@ function PaymentRow({ payment }) {
   )
 }
 
-export default function Payments({ currentUser }) {
+export default function Payments({ currentUser, onNavigate, booking, eventData }) {
   const [summary, setSummary] = useState({
     totalPaid: 0,
     successfulTransactions: 0,
@@ -60,6 +60,10 @@ export default function Payments({ currentUser }) {
   const [transactions, setTransactions] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+
+  const isCheckoutMode = Boolean(booking)
 
   useEffect(() => {
     let isMounted = true
@@ -99,6 +103,114 @@ export default function Payments({ currentUser }) {
       isMounted = false
     }
   }, [currentUser?.id])
+
+  const handlePayment = async () => {
+    if (!booking || !currentUser?.id) return
+
+    setIsProcessingPayment(true)
+    setError('')
+
+    try {
+      const payload = {
+        bookingId: booking.id,
+        userId: currentUser.id,
+        amount: booking.totalAmount,
+        paymentMethod: 'manual',
+      }
+
+      const response = await processPayment(payload)
+      console.log('Payment processed:', response)
+
+      setPaymentSuccess(true)
+      setTimeout(() => {
+        onNavigate?.('paymentSuccess')
+      }, 2000)
+    } catch (err) {
+      setError(err.message || 'Failed to process payment.')
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
+  if (isCheckoutMode && paymentSuccess) {
+    return (
+      <div className="att-pay-page">
+        <div className="att-pay-success">
+          <div className="att-pay-success-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2>Payment Successful!</h2>
+          <p>Your booking has been confirmed. Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isCheckoutMode) {
+    return (
+      <div className="att-pay-page">
+        <header className="att-pay-header">
+          <h1 className="att-pay-title">Complete Payment</h1>
+          <p className="att-pay-subtitle">Review your booking and proceed with payment.</p>
+        </header>
+
+        <div className="att-pay-checkout-card">
+          <div className="att-pay-booking-summary">
+            <h3>Booking Summary</h3>
+            <div className="att-pay-booking-detail">
+              <span>Event:</span>
+              <strong>{eventData?.title || 'Tech Conference 2026'}</strong>
+            </div>
+            <div className="att-pay-booking-detail">
+              <span>Ticket Type:</span>
+              <strong>{booking?.ticketType?.charAt(0).toUpperCase() + booking?.ticketType?.slice(1)}</strong>
+            </div>
+            <div className="att-pay-booking-detail">
+              <span>Quantity:</span>
+              <strong>{booking?.quantity}</strong>
+            </div>
+            <div className="att-pay-booking-detail att-pay-total">
+              <span>Total Amount:</span>
+              <strong>{formatMoney(booking?.totalAmount)}</strong>
+            </div>
+          </div>
+
+          <div className="att-pay-methods">
+            <h3>Payment Method</h3>
+            <div className="att-pay-method-option att-pay-method-selected">
+              <span className="att-pay-method-icon">💳</span>
+              <span>Credit/Debit Card (Demo)</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="att-pay-error">
+              {error}
+            </div>
+          )}
+
+          <button
+            className="att-pay-btn-primary"
+            onClick={handlePayment}
+            disabled={isProcessingPayment}
+          >
+            {isProcessingPayment ? 'Processing...' : `Pay ${formatMoney(booking?.totalAmount)}`}
+          </button>
+
+          <button
+            className="att-pay-btn-secondary"
+            onClick={() => onNavigate?.('eventDetails')}
+            disabled={isProcessingPayment}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const summaryCards = [
     {

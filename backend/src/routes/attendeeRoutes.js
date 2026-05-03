@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
 	cancelAttendeeBooking,
 	createAttendeeReview,
+	createBooking,
 	deleteAttendeeReview,
 	getAttendeeProfile,
 	listAttendeeBookings,
@@ -11,6 +12,7 @@ import {
 	listAttendeeWishlist,
 	markAllNotificationsAsRead,
 	markNotificationAsRead,
+	processPayment,
 	toggleWishlist,
 	updateAttendeePassword,
 	updateAttendeeProfile,
@@ -38,5 +40,7 @@ router.get('/profile', asyncHandler(getAttendeeProfile));
 router.patch('/profile', asyncHandler(updateAttendeeProfile));
 router.patch('/profile/password', asyncHandler(updateAttendeePassword));
 router.post('/profile/avatar', uploadAvatar, asyncHandler(uploadUserAvatar));
+router.post('/bookings', asyncHandler(createBooking));
+router.post('/payments', asyncHandler(processPayment));
 
 export default router;
