@@ -267,3 +267,153 @@
     flex-wrap: wrap;
   }
 }
+
+/* Modal Styles */
+.rr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.rr-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: rr-modal-slide-in 0.3s ease;
+}
+
+@keyframes rr-modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rr-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.rr-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f4788;
+}
+
+.rr-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #5f7aa2;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.rr-modal-close:hover {
+  background: #f1f5f9;
+}
+
+.rr-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rr-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rr-form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #31568d;
+}
+
+.rr-form-group input,
+.rr-form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid #cfe0f6;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #173b7a;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.rr-form-group input:focus,
+.rr-form-group textarea:focus {
+  outline: none;
+  border-color: #2598c6;
+}
+
+.rr-form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.rr-rating-select {
+  display: flex;
+  gap: 8px;
+}
+
+.rr-star-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.rr-star-btn:hover {
+  transform: scale(1.1);
+}
+
+.rr-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.rr-btn-primary {
+  min-height: 36px;
+  padding: 0 20px;
+  background: #2598c6;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rr-btn-primary:hover {
+  background: #1d6e9a;
+}

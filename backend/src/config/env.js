@@ -18,7 +18,7 @@ export const env = {
   
   // Database
   databaseUrl:
-    process.env.DATABASE_URL || 'postgresql://postgres:Mihir1234@localhost:5432/eventify_db',
+    process.env.DATABASE_URL || 'postgresql://postgres:Mihir1234@localhost:5432/eventify',
   
   // JWT
   jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',

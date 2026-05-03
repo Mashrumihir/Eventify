@@ -159,7 +159,7 @@ export async function listEvents(req, res) {
        c.name AS category_name,
        v.name AS venue_name,
        CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
-       COALESCE(AVG(r.rating), 0) AS rating,
+       COALESCE(AVG(r.overall_rating), 0) AS rating,
        COUNT(DISTINCT r.id) AS reviews_count,
        COALESCE(SUM(CASE WHEN b.status = 'confirmed' THEN b.total_amount ELSE 0 END), 0) AS revenue,
        ${viewerSql}
@@ -209,9 +209,9 @@ export async function createEvent(req, res) {
     const venueName = (venue || 'Online').trim() || 'Online';
     const venueResult = await client.query(
       `INSERT INTO venues (managed_by, name, address, city, state)
-       VALUES ($1, $2, $3, NULL, NULL)
+       VALUES ($1, $2, $3, $4, NULL)
        RETURNING id`,
-      [organizerId, venueName, venueName]
+      [organizerId, venueName, venueName, venueName]
     );
 
     const eventResult = await client.query(
@@ -322,9 +322,9 @@ export async function updateEvent(req, res) {
     const venueName = (venue || 'Online').trim() || 'Online';
     const venueResult = await client.query(
       `INSERT INTO venues (managed_by, name, address, city, state)
-       VALUES ($1, $2, $3, NULL, NULL)
+       VALUES ($1, $2, $3, $4, NULL)
        RETURNING id`,
-      [current.rows[0].organizer_id, venueName, venueName]
+      [current.rows[0].organizer_id, venueName, venueName, venueName]
     );
 
     await client.query(
@@ -432,7 +432,7 @@ export async function getAttendeeDashboard(req, res) {
          c.name AS category_name,
          v.name AS venue_name,
          CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
-         COALESCE(AVG(r.rating), 0) AS rating,
+         COALESCE(AVG(r.overall_rating), 0) AS rating,
          COUNT(DISTINCT r.id) AS reviews_count,
          COALESCE(SUM(CASE WHEN b.status = 'confirmed' THEN b.total_amount ELSE 0 END), 0) AS revenue,
          EXISTS (
@@ -470,7 +470,7 @@ export async function getAttendeeDashboard(req, res) {
          c.name AS category_name,
          v.name AS venue_name,
          CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
-         COALESCE(AVG(r.rating), 0) AS rating,
+         COALESCE(AVG(r.overall_rating), 0) AS rating,
          COUNT(DISTINCT r.id) AS reviews_count,
          COALESCE(SUM(CASE WHEN b.status = 'confirmed' THEN b.total_amount ELSE 0 END), 0) AS revenue,
          EXISTS (
@@ -761,7 +761,7 @@ export async function listAttendeeWishlist(req, res) {
        e.base_price,
        c.name AS category_name,
        CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
-       COALESCE(AVG(r.rating), 0) AS rating,
+       COALESCE(AVG(r.overall_rating), 0) AS rating,
        COUNT(DISTINCT r.id) AS reviews_count
      FROM wishlists w
      JOIN events e ON e.id = w.event_id
@@ -869,7 +869,7 @@ export async function listAttendeeReviews(req, res) {
       `SELECT
          r.id,
          r.event_id,
-         r.rating,
+         r.overall_rating,
          r.comment,
          r.created_at,
          e.title,
@@ -1481,7 +1481,7 @@ export async function listOrganizerApplications(req, res) {
 
   if (email) {
     values.push(`%${email.toLowerCase()}%`);
-    filters.push(`LOWER(oa.contact_email) LIKE $${values.length}`);
+    filters.push(`LOWER(oa.business_email) LIKE $${values.length}`);
   }
 
   const result = await query(
@@ -1489,10 +1489,7 @@ export async function listOrganizerApplications(req, res) {
        oa.id,
        oa.user_id,
        oa.organization_name,
-       oa.contact_email,
-       oa.status,
-       oa.created_at
-     FROM organizer_applications oa
+       oa.business_email,
      ${filters.length ? `WHERE ${filters.join(' AND ')}` : ''}
      ORDER BY oa.created_at DESC`,
     values
@@ -1539,18 +1536,10 @@ export async function createOrganizerApplication(req, res) {
        user_id,
        organization_name,
        business_type,
-       contact_email,
-       description,
-       status
-     )
-     VALUES ($1, $2, 'Individual', $3, 'Created from admin panel.', $4)
-     ON CONFLICT (user_id)
-     DO UPDATE SET
-       organization_name = EXCLUDED.organization_name,
-       contact_email = EXCLUDED.contact_email,
+       business_email,
        status = EXCLUDED.status,
        updated_at = NOW()
-     RETURNING id, user_id, organization_name, contact_email, status, created_at`,
+     RETURNING id, user_id, organization_name, business_email, status, created_at`,
     [userId, name.trim(), email.trim().toLowerCase(), status.toLowerCase()]
   );
 
@@ -1560,7 +1549,7 @@ export async function createOrganizerApplication(req, res) {
       id: result.rows[0].id,
       userId: result.rows[0].user_id,
       name: result.rows[0].organization_name,
-      email: result.rows[0].contact_email,
+      email: result.rows[0].business_email,
       status: result.rows[0].status,
       submittedAt: result.rows[0].created_at,
     },

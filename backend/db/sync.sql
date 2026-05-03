@@ -27,6 +27,16 @@ END $$;
 
 ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'success';
 ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'partially_refunded';
+ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'pending';
+ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'failed';
+ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'refunded';
+
+ALTER TYPE booking_status ADD VALUE IF NOT EXISTS 'pending';
+ALTER TYPE booking_status ADD VALUE IF NOT EXISTS 'confirmed';
+ALTER TYPE booking_status ADD VALUE IF NOT EXISTS 'cancelled';
+ALTER TYPE booking_status ADD VALUE IF NOT EXISTS 'refunded';
+
+ALTER TYPE event_status ADD VALUE IF NOT EXISTS 'completed';
 
 ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS provider VARCHAR(80) DEFAULT 'manual';
 ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(80);

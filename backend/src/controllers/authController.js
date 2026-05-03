@@ -67,8 +67,8 @@ export async function register(req, res) {
       `INSERT INTO organizer_applications (
         user_id,
         organization_name,
-        business_type,
-        contact_email,
+        organization_type,
+        business_email,
         description,
         status
       )

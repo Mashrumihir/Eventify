@@ -154,7 +154,7 @@ Environment:
   DATABASE_URL   PostgreSQL connection string
   
 Example:
-  DATABASE_URL=postgresql://user:pass@localhost:5432/eventify_db node scripts/init-database.js
+  DATABASE_URL=postgresql://user:pass@localhost:5432/eventify node scripts/init-database.js
   `);
   process.exit(0);
 }

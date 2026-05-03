@@ -15,7 +15,7 @@ const { Pool } = pg;
 
 const dbConfig = {
   // Connection string from environment
-  connectionString: env.databaseUrl || 'postgresql://postgres:Mihir1234@localhost:5432/eventify_db',
+  connectionString: env.databaseUrl || 'postgresql://postgres:Mihir1234@localhost:5432/eventify',
   
   // Pool settings for performance
   max: 20,                          // Maximum pool size
