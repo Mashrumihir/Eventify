@@ -1052,18 +1052,39 @@ export async function getOrganizerDashboard(req, res) {
     return res.status(400).json({ message: 'Organizer id is required.' });
   }
 
-  const [statsResult, activityResult] = await Promise.all([
+  const [statsResult, activityResult, chartResult] = await Promise.all([
     query(
-      `SELECT
-         COUNT(*) AS total_events,
-         COALESCE(SUM(e.tickets_sold), 0) AS tickets_sold,
-         COALESCE(SUM(e.tickets_sold * e.base_price), 0) AS total_revenue,
+      `WITH organizer_events AS (
+         SELECT id, capacity
+         FROM events
+         WHERE organizer_id = $1
+       ),
+       booking_totals AS (
+         SELECT
+           b.id,
+           b.event_id,
+           b.status,
+           COALESCE(SUM(bi.quantity), 0) AS quantity,
+           COALESCE(MAX(p.amount), MAX(b.total_amount), 0) AS amount
+         FROM bookings b
+         LEFT JOIN booking_items bi ON bi.booking_id = b.id
+         LEFT JOIN payments p ON p.booking_id = b.id AND p.payment_status = 'success'
+         WHERE b.event_id IN (SELECT id FROM organizer_events)
+         GROUP BY b.id
+       )
+       SELECT
+         (SELECT COUNT(*) FROM organizer_events) AS total_events,
+         COALESCE(SUM(quantity) FILTER (WHERE status IN ('confirmed', 'pending')), 0) AS tickets_sold,
+         COALESCE(SUM(amount) FILTER (WHERE status IN ('confirmed', 'pending')), 0) AS total_revenue,
          CASE
-           WHEN COALESCE(SUM(e.capacity), 0) = 0 THEN 0
-           ELSE ROUND((COALESCE(SUM(e.tickets_sold), 0)::NUMERIC / NULLIF(SUM(e.capacity), 0)) * 100, 1)
+           WHEN COALESCE((SELECT SUM(capacity) FROM organizer_events), 0) = 0 THEN 0
+           ELSE ROUND(
+             (COALESCE(SUM(quantity) FILTER (WHERE status IN ('confirmed', 'pending')), 0)::NUMERIC
+              / NULLIF((SELECT SUM(capacity) FROM organizer_events), 0)) * 100,
+             1
+           )
          END AS conversion_rate
-       FROM events e
-       WHERE e.organizer_id = $1`,
+       FROM booking_totals`,
       [organizerId]
     ),
     query(
@@ -1085,9 +1106,41 @@ export async function getOrganizerDashboard(req, res) {
        LIMIT 6`,
       [organizerId]
     ),
+    query(
+      `SELECT
+         EXTRACT(ISODOW FROM COALESCE(p.paid_at, b.created_at))::INTEGER AS day_number,
+         COALESCE(SUM(bi.quantity), 0) AS sales,
+         COALESCE(SUM(CASE WHEN p.payment_status = 'success' THEN p.amount ELSE 0 END), 0) AS revenue,
+         COUNT(DISTINCT b.user_id) AS visitors
+       FROM bookings b
+       JOIN events e ON e.id = b.event_id
+       LEFT JOIN booking_items bi ON bi.booking_id = b.id
+       LEFT JOIN payments p ON p.booking_id = b.id
+       WHERE e.organizer_id = $1
+         AND b.status IN ('confirmed', 'pending')
+         AND COALESCE(p.paid_at, b.created_at) >= NOW() - INTERVAL '7 days'
+       GROUP BY day_number
+       ORDER BY day_number`,
+      [organizerId]
+    ),
   ]);
 
   const statsRow = statsResult.rows[0] || {};
+  const chartSeries = {
+    sales: Array(7).fill(0),
+    revenue: Array(7).fill(0),
+    visitors: Array(7).fill(0),
+  };
+
+  chartResult.rows.forEach((row) => {
+    const dayIndex = Number(row.day_number || 1) - 1;
+
+    if (dayIndex >= 0 && dayIndex < 7) {
+      chartSeries.sales[dayIndex] = Number(row.sales || 0);
+      chartSeries.revenue[dayIndex] = formatCurrencyValue(row.revenue);
+      chartSeries.visitors[dayIndex] = Number(row.visitors || 0);
+    }
+  });
 
   res.json({
     stats: {
@@ -1096,6 +1149,7 @@ export async function getOrganizerDashboard(req, res) {
       totalEvents: Number(statsRow.total_events || 0),
       conversionRate: Number(statsRow.conversion_rate || 0),
     },
+    chartSeries,
     recentActivity: activityResult.rows.map((row) => ({
       id: row.id,
       event: row.event_title,

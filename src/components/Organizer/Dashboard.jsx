@@ -55,6 +55,11 @@ export default function Dashboard({ currentUser }) {
       totalEvents: 0,
       conversionRate: 0,
     },
+    chartSeries: {
+      sales: Array(7).fill(0),
+      revenue: Array(7).fill(0),
+      visitors: Array(7).fill(0),
+    },
     recentActivity: [],
   })
   const [isLoading, setIsLoading] = useState(true)
@@ -126,6 +131,16 @@ export default function Dashboard({ currentUser }) {
   ]
 
   const chartMetrics = useMemo(() => {
+    const liveSeries = data.chartSeries
+
+    if (liveSeries) {
+      return {
+        sales: WEEK_LABELS.map((_, index) => Number(liveSeries.sales?.[index] || 0)),
+        revenue: WEEK_LABELS.map((_, index) => Number(liveSeries.revenue?.[index] || 0)),
+        visitors: WEEK_LABELS.map((_, index) => Number(liveSeries.visitors?.[index] || 0)),
+      }
+    }
+
     const sales = Array(7).fill(0)
     const revenue = Array(7).fill(0)
     const visitorSets = Array.from({ length: 7 }, () => new Set())
@@ -147,7 +162,7 @@ export default function Dashboard({ currentUser }) {
       revenue,
       visitors: visitorSets.map((visitorSet) => visitorSet.size),
     }
-  }, [data.recentActivity])
+  }, [data.chartSeries, data.recentActivity])
 
   const salesChartData = useMemo(() => ({
     labels: WEEK_LABELS,
