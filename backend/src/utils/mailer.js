@@ -2,12 +2,7 @@ import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
 
 function assertSmtpConfig() {
-  const hasPlaceholder =
-    env.smtp.user.includes('videostudio71@gmail.com') ||
-    env.smtp.pass.includes('tgmy ainl qdwa Insk') ||
-    env.smtp.from.includes('videostudio71@gmail.com');
-
-  if (!env.smtp.user || !env.smtp.pass || !env.smtp.from || hasPlaceholder) {
+  if (!env.smtp.user || !env.smtp.pass || !env.smtp.from) {
     throw new Error('SMTP is not configured. Set SMTP_USER, SMTP_PASS, and SMTP_FROM in backend/.env.');
   }
 }
