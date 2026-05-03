@@ -143,13 +143,4 @@ It connects with backend APIs to manage events, bookings, and user data efficien
 - API Development  
 - Authentication  
 
----
-
-## ⭐ Future Improvements  
-
-- 💳 Payment Integration (Razorpay / Stripe)  
-- 📧 Email Notifications (SMTP / Firebase)  
-- 📱 Mobile Optimization  
-- 📊 Advanced Analytics Dashboard  
-- 🌐 Deployment (Vercel / Netlify)  
 
