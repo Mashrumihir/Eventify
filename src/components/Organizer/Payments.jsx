@@ -4,7 +4,7 @@ import './css/Payments.css'
 const STATS = [
   {
     title: 'Total Revenue',
-    value: '\u20B93,743',
+    value: '\u20B900',
     icon: <span>{'\u20B9'}</span>,
     color: 'green',
   },
@@ -21,7 +21,7 @@ const STATS = [
   },
   {
     title: 'Successful Transactions',
-    value: '19',
+    value: '0',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -43,16 +43,7 @@ const STATS = [
   },
 ]
 
-const TRANSACTIONS = [
-  { id: '#TXN-20260412133625-0031', date: 'Apr 12, 2026', event: 'Tech Summit 2026', customer: 'Mashrumihir15', amount: '\u20B91,990', method: 'Card', status: 'Success' },
-  { id: '#TXN-20260412115743-0030', date: 'Apr 12, 2026', event: 'Tech Summit 2026', customer: 'Mashrumihir15', amount: '\u20B979', method: 'Card', status: 'Success' },
-  { id: '#TXN-20260412083649-0029', date: 'Apr 12, 2026', event: 'Jazz Night Live', customer: 'Mashrumihir15', amount: '\u20B955', method: 'Card', status: 'Success' },
-  { id: '#TXN-20260411162726-0028', date: 'Apr 11, 2026', event: 'Modern Art Exhibition', customer: 'Mashrumihir15', amount: '\u20B900', method: 'Free', status: 'Free' },
-  { id: '#TXN-20260411162645-0027', date: 'Apr 11, 2026', event: 'Mihir Mashru', customer: 'Mashrumihir15', amount: '\u20B900', method: 'Free', status: 'Free' },
-  { id: '#TXN-20260411161310-0026', date: 'Apr 11, 2026', event: 'Tech Summit 2026', customer: 'Mashrumihir15', amount: '\u20B9297', method: 'UPI', status: 'Success' },
-  { id: '#TXN-20260411161240-0025', date: 'Apr 11, 2026', event: 'Tech Summit 2026', customer: 'Mashrumihir15', amount: '\u20B9297', method: 'UPI', status: 'Success' },
-  { id: '#TXN-20260408060526-0024', date: 'Apr 8, 2026', event: 'Tech Summit 2026', customer: 'Mashrumihir15', amount: '\u20B979', method: 'Card', status: 'Success' },
-]
+const TRANSACTIONS = []
 
 export default function Payments() {
   return (
@@ -109,6 +100,13 @@ export default function Payments() {
             </tbody>
           </table>
         </div>
+
+        {!TRANSACTIONS.length ? (
+          <div className="pay-empty-state">
+            <h3>No transactions found</h3>
+            <p>Payment records will appear here after bookings are completed.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   )

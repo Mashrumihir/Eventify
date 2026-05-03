@@ -1,15 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import './css/Bookings.css'
 
-const BOOKINGS = [
-  { id: '#EVT-20260412133625-001', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Tech Summit 2026', type: 'VIP', qty: 10, amount: '\u20B91,990', status: 'Booked', date: 'Apr 12, 2026', refunded: false },
-  { id: '#EVT-20260412115743-001', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Tech Summit 2026', type: 'Early Bird', qty: 1, amount: '\u20B979', status: 'Booked', date: 'Apr 12, 2026', refunded: false },
-  { id: '#EVT-20260412083648-007', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Jazz Night Live', type: 'Regular', qty: 1, amount: '\u20B955', status: 'Booked', date: 'Apr 12, 2026', refunded: false },
-  { id: '#FR-20260411162726-003', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Modern Art Exhibition', type: 'Regular', qty: 1, amount: '\u20B900', status: 'Canceled', date: 'Apr 11, 2026', refunded: true },
-  { id: '#FR-20260411162645-009', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Mihir Mashru', type: 'Regular', qty: 1, amount: '\u20B900', status: 'Canceled', date: 'Apr 11, 2026', refunded: true },
-  { id: '#EVT-20260411161310-001', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Tech Summit 2026', type: 'Regular', qty: 3, amount: '\u20B9297', status: 'Canceled', date: 'Apr 11, 2026', refunded: true },
-  { id: '#EVT-20260411161240-001', attendee: { name: 'Mashrumihir15', email: 'mashrumihir15@gmail.com' }, event: 'Tech Summit 2026', type: 'Regular', qty: 3, amount: '\u20B9297', status: 'Booked', date: 'Apr 11, 2026', refunded: false },
-]
+const BOOKINGS = []
 
 export default function Bookings() {
   const [searchTerm, setSearchTerm] = useState('')

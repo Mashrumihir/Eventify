@@ -57,7 +57,7 @@ export default function App() {
 
   const handleLogout = () => {
     logout()
-    setAuthMode('login')
+    setAuthMode('home')
     setActivePage('dashboard')
     setNavigationState({})
   }
