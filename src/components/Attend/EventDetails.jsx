@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import './css/EventDetails.css'
-import { createBooking, processPayment } from '../../services/dataService'
-import { setActiveInvoiceFromCheckout } from './js/invoiceData'
+import { createBooking } from '../../services/dataService'
 
 export default function EventDetails({ onNavigate, currentUser, eventData }) {
   const [selectedTicket, setSelectedTicket] = useState('regular')
@@ -52,20 +51,7 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
       const response = await createBooking(bookingPayload)
       console.log('Booking created successfully:', response.booking)
 
-      await processPayment({
-        bookingId: response.booking.id,
-        userId,
-        amount: response.booking.totalAmount,
-        paymentMethod: 'manual',
-      })
-
-      setActiveInvoiceFromCheckout({
-        booking: response.booking,
-        eventData,
-        user: currentUser,
-      })
-
-      onNavigate('paymentSuccess')
+      onNavigate('payment', { booking: response.booking, eventData })
     } catch (err) {
       console.error('Booking error:', err)
       console.error('Full error:', err.message, err.stack)

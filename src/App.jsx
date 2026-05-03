@@ -4,6 +4,7 @@ import Sidebar from './components/Attend/Sidebar'
 import Dashboard from './components/Attend/Dashboard'
 import BrowseEvents from './components/Attend/BrowseEvents'
 import EventDetails from './components/Attend/EventDetails'
+import CompletePayment from './components/Attend/Payment/CompletePayment'
 import PaymentSuccess from './components/Attend/PaymentSuccess'
 import Payments from './components/Attend/Payments'
 import TaxInvoice from './components/Attend/TaxInvoice'
@@ -154,7 +155,14 @@ export default function App() {
       case 'eventDetails':
         return <EventDetails onNavigate={handleNavigate} currentUser={user} eventData={navigationState.eventData} />
       case 'payment':
-        return <PaymentSuccess currentUser={user} onNavigate={handleNavigate} />
+        return (
+          <CompletePayment
+            currentUser={user}
+            onNavigate={handleNavigate}
+            booking={navigationState.booking}
+            eventData={navigationState.eventData}
+          />
+        )
       case 'paymentSuccess':
         return <PaymentSuccess currentUser={user} onNavigate={handleNavigate} />
       case 'payments':
