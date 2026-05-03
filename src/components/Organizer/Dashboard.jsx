@@ -1,9 +1,51 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
 import { FaIndianRupeeSign } from 'react-icons/fa6'
 import { FiTrendingUp } from 'react-icons/fi'
 import { LuClipboardList, LuTicket } from 'react-icons/lu'
 import './css/Dashboard.css'
 import { fetchOrganizerDashboard } from '../../services/dataService'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
+
+const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAY_INDEX_BY_LABEL = WEEK_LABELS.reduce((map, label, index) => ({ ...map, [label]: index }), {})
+
+function extractTicketCount(action = '') {
+  const match = action.match(/Purchased\s+(\d+)/i)
+  return match ? Number(match[1]) : 1
+}
+
+function getDayIndex(value) {
+  if (!value) return -1
+
+  const label = new Date(value).toLocaleDateString('en-US', { weekday: 'short' })
+  return DAY_INDEX_BY_LABEL[label] ?? -1
+}
+
+function createLineGradient(context, colorStart, colorEnd) {
+  const { chart } = context
+  const { chartArea, ctx } = chart
+
+  if (!chartArea) {
+    return colorStart
+  }
+
+  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
+  gradient.addColorStop(0, colorStart)
+  gradient.addColorStop(1, colorEnd)
+  return gradient
+}
 
 export default function Dashboard({ currentUser }) {
   const [data, setData] = useState({
@@ -83,6 +125,178 @@ export default function Dashboard({ currentUser }) {
     },
   ]
 
+  const chartMetrics = useMemo(() => {
+    const sales = Array(7).fill(0)
+    const revenue = Array(7).fill(0)
+    const visitorSets = Array.from({ length: 7 }, () => new Set())
+
+    data.recentActivity.forEach((activity) => {
+      const dayIndex = getDayIndex(activity.paidAt)
+
+      if (dayIndex < 0) {
+        return
+      }
+
+      sales[dayIndex] += extractTicketCount(activity.action)
+      revenue[dayIndex] += Number(activity.amount || 0)
+      visitorSets[dayIndex].add(activity.user || activity.id)
+    })
+
+    return {
+      sales,
+      revenue,
+      visitors: visitorSets.map((visitorSet) => visitorSet.size),
+    }
+  }, [data.recentActivity])
+
+  const salesChartData = useMemo(() => ({
+    labels: WEEK_LABELS,
+    datasets: [
+      {
+        label: 'Sales',
+        data: chartMetrics.sales,
+        borderColor: '#3b82f6',
+        backgroundColor: (context) => createLineGradient(context, 'rgba(59, 130, 246, 0.22)', 'rgba(59, 130, 246, 0)'),
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.42,
+        fill: true,
+        yAxisID: 'sales',
+      },
+      {
+        label: 'Revenue',
+        data: chartMetrics.revenue,
+        borderColor: '#14b8a6',
+        backgroundColor: (context) => createLineGradient(context, 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0)'),
+        pointBackgroundColor: '#14b8a6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.42,
+        fill: true,
+        yAxisID: 'revenue',
+      },
+    ],
+  }), [chartMetrics])
+
+  const visitorsChartData = useMemo(() => ({
+    labels: WEEK_LABELS,
+    datasets: [
+      {
+        label: 'Visitors',
+        data: chartMetrics.visitors,
+        borderColor: '#8b5cf6',
+        backgroundColor: (context) => createLineGradient(context, 'rgba(139, 92, 246, 0.22)', 'rgba(139, 92, 246, 0)'),
+        pointBackgroundColor: '#8b5cf6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.42,
+        fill: true,
+      },
+    ],
+  }), [chartMetrics.visitors])
+
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        align: 'start',
+        labels: {
+          boxHeight: 3,
+          boxWidth: 24,
+          color: '#526783',
+          font: {
+            size: 12,
+            weight: 500,
+          },
+          usePointStyle: false,
+        },
+      },
+      tooltip: {
+        backgroundColor: '#0f274a',
+        titleColor: '#ffffff',
+        bodyColor: '#dbeafe',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        border: {
+          color: '#dbe5f2',
+        },
+        ticks: {
+          color: '#6b7f9d',
+          font: {
+            size: 12,
+          },
+        },
+      },
+      sales: {
+        beginAtZero: true,
+        position: 'left',
+        grid: {
+          color: 'rgba(219, 229, 242, 0.7)',
+          drawBorder: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: '#8ea0ba',
+          precision: 0,
+        },
+      },
+      revenue: {
+        beginAtZero: true,
+        position: 'right',
+        grid: {
+          drawOnChartArea: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: '#8ea0ba',
+          callback: (value) => `\u20B9${Number(value).toLocaleString('en-IN')}`,
+        },
+      },
+    },
+  }), [])
+
+  const visitorsChartOptions = useMemo(() => ({
+    ...chartOptions,
+    scales: {
+      x: chartOptions.scales.x,
+      y: {
+        beginAtZero: true,
+        grid: chartOptions.scales.sales.grid,
+        border: chartOptions.scales.sales.border,
+        ticks: {
+          color: '#8ea0ba',
+          precision: 0,
+        },
+      },
+    },
+  }), [chartOptions])
+
   return (
     <div className="org-dash-layout">
       <div className="org-header">
@@ -105,6 +319,22 @@ export default function Dashboard({ currentUser }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="org-charts-row">
+        <div className="org-chart-card">
+          <h3 className="org-chart-title">Sales Chart</h3>
+          <div className="org-chart-canvas">
+            <Line data={salesChartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div className="org-chart-card">
+          <h3 className="org-chart-title">Visitors Chart</h3>
+          <div className="org-chart-canvas">
+            <Line data={visitorsChartData} options={visitorsChartOptions} />
+          </div>
+        </div>
       </div>
 
       <div className="org-activity-card">
