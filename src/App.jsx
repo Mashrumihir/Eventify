@@ -112,7 +112,7 @@ export default function App() {
         case 'bookings':
           return <OrgBookings />
         case 'payments':
-          return <OrgPayments />
+          return <OrgPayments currentUser={user} />
         case 'announcements':
           return <OrgAnnouncements />
         case 'profile':

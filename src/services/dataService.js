@@ -45,6 +45,10 @@ export function fetchOrganizerDashboard(organizerId) {
   return apiRequest(`/dashboard/organizer?organizerId=${encodeURIComponent(organizerId)}`);
 }
 
+export function fetchOrganizerPayments(organizerId) {
+  return apiRequest(`/dashboard/organizer/payments?organizerId=${encodeURIComponent(organizerId)}`);
+}
+
 export function fetchAdminDashboard() {
   return apiRequest('/dashboard/admin');
 }

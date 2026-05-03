@@ -15,6 +15,9 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
   }
 
   const total = ticketPrices[selectedTicket] * quantity
+  const ticketsSold = Number(eventData?.ticketsSold || 0)
+  const capacity = Number(eventData?.capacity || 0)
+  const soldPercent = capacity > 0 ? Math.min(100, Math.round((ticketsSold / capacity) * 100)) : 0
 
   const handleProceedToPayment = async () => {
     setError('')
@@ -154,6 +157,13 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
       <div className="ed-sidebar-col">
         <div className="ed-checkout-card">
           <h2 className="ed-checkout-title">Book Tickets</h2>
+
+          <div className="ed-sales-meter">
+            <div className="ed-sales-text">Tickets Sold: {ticketsSold} / {capacity}</div>
+            <div className="ed-sales-track">
+              <div className="ed-sales-fill" style={{ width: `${soldPercent}%` }} />
+            </div>
+          </div>
 
           <div className="ed-ticket-types">
             <div

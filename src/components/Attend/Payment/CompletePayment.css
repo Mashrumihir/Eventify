@@ -3,6 +3,7 @@
   grid-template-columns: minmax(0, 1fr) 256px;
   gap: 10px;
   color: #082b5f;
+  width: 100%;
 }
 
 .cp-main {
@@ -16,6 +17,7 @@
   background: transparent;
   color: #0f4a8a;
   font-size: 12px;
+  line-height: 1.2;
   cursor: pointer;
 }
 
@@ -46,7 +48,7 @@
 
 .cp-panel {
   margin-bottom: 8px;
-  padding: 10px;
+  padding: 10px 9px;
 }
 
 .cp-panel h2,
@@ -77,6 +79,7 @@
   color: #082b5f;
   text-align: left;
   cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .cp-method.active {
@@ -135,6 +138,9 @@
 }
 
 .cp-secure-note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin: 0;
   padding: 7px 9px;
   border: 1px solid #a9cdfd;
@@ -142,6 +148,10 @@
   background: #eef6ff;
   color: #0754bd;
   font-size: 10px;
+}
+
+.cp-secure-note svg {
+  flex: 0 0 auto;
 }
 
 .cp-summary {
@@ -162,6 +172,18 @@
   gap: 3px;
   color: #315987;
   font-size: 12px;
+}
+
+.cp-summary-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cp-summary-meta svg {
+  flex: 0 0 auto;
+  color: #315987;
 }
 
 .cp-line-items {
@@ -192,7 +214,7 @@
   align-items: baseline;
   gap: 12px;
   margin-bottom: 10px;
-  color: #2347ff;
+  color: #263cff;
   font-size: 34px;
   line-height: 1;
   font-weight: 900;
@@ -203,7 +225,7 @@
   min-height: 34px;
   border: 0;
   border-radius: 7px;
-  background: linear-gradient(90deg, #367df5, #10b6c9);
+  background: linear-gradient(90deg, #347df7, #12b8c8);
   color: #ffffff;
   font-size: 16px;
   font-weight: 900;

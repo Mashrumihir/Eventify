@@ -11,6 +11,7 @@ export default function Dashboard() {
       revenueSummary: 0,
     },
     pendingApprovals: [],
+    recentPayments: [],
   })
   const [error, setError] = useState('')
 
@@ -104,6 +105,31 @@ export default function Dashboard() {
               ))
             ) : (
               <p className="admin-section-subtitle">No pending organizer applications right now.</p>
+            )}
+          </div>
+        </section>
+
+        <section className="admin-approvals-card">
+          <h3>Recent Payments</h3>
+
+          <div className="admin-approval-list">
+            {data.recentPayments.length ? (
+              data.recentPayments.map((payment) => (
+                <div key={payment.id} className="admin-approval-item">
+                  <div className="admin-approval-info">
+                    <h4>{payment.event}</h4>
+                    <p>
+                      {payment.customer} paid {'\u20B9'}{Number(payment.amount || 0).toLocaleString('en-IN')} to {payment.organizer}
+                    </p>
+                  </div>
+
+                  <div className="admin-approval-actions">
+                    <span className="admin-section-subtitle">{payment.status}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="admin-section-subtitle">No payment records yet.</p>
             )}
           </div>
         </section>

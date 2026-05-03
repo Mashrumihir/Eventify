@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { FiCalendar, FiLock, FiMapPin, FiTag, FiUsers } from 'react-icons/fi'
 import { processPayment } from '../../../services/dataService'
 import { setActiveInvoiceFromCheckout } from '../js/invoiceData'
 import './CompletePayment.css'
@@ -168,17 +169,20 @@ export default function CompletePayment({ booking, eventData, currentUser, onNav
           </div>
         </section>
 
-        <p className="cp-secure-note">Your payment information is encrypted and secure. We do not store your card details.</p>
+        <p className="cp-secure-note">
+          <FiLock size={12} />
+          <span>Your payment information is encrypted and secure. We do not store your card details.</span>
+        </p>
       </div>
 
       <aside className="cp-summary">
         <h2>Order Summary</h2>
         <h3>{summary.eventTitle}</h3>
         <div className="cp-summary-meta">
-          <span>{summary.date}</span>
-          <span>{summary.venue}</span>
-          <span>{summary.ticketType}</span>
-          <span>Quantity: {summary.quantity}</span>
+          <span><FiCalendar size={12} />{summary.date}</span>
+          <span><FiMapPin size={12} />{summary.venue}</span>
+          <span><FiTag size={12} />{summary.ticketType}</span>
+          <span><FiUsers size={12} />Quantity: {summary.quantity}</span>
         </div>
         <div className="cp-line-items">
           <div>

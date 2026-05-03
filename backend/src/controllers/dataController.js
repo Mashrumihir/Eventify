@@ -694,6 +694,65 @@ export async function listAttendeePayments(req, res) {
   });
 }
 
+export async function listOrganizerPayments(req, res) {
+  const { organizerId } = req.query;
+
+  if (!organizerId) {
+    return res.status(400).json({ message: 'Organizer id is required.' });
+  }
+
+  const result = await query(
+    `SELECT
+       p.id,
+       p.payment_reference,
+       p.provider,
+       p.amount,
+       p.payment_status,
+       p.paid_at,
+       p.created_at,
+       b.booking_reference,
+       e.title AS event_title,
+       u.full_name AS customer_name,
+       COALESCE(SUM(bi.quantity), 1) AS quantity
+     FROM payments p
+     JOIN bookings b ON b.id = p.booking_id
+     JOIN events e ON e.id = b.event_id
+     JOIN users u ON u.id = b.user_id
+     LEFT JOIN booking_items bi ON bi.booking_id = b.id
+     WHERE e.organizer_id = $1
+     GROUP BY p.id, p.payment_reference, p.provider, p.amount, p.payment_status, p.paid_at, p.created_at, b.booking_reference, e.title, u.full_name
+     ORDER BY COALESCE(p.paid_at, p.created_at) DESC`,
+    [organizerId]
+  );
+
+  const totalRevenue = result.rows.reduce((sum, row) => {
+    return row.payment_status === 'success' ? sum + Number(row.amount || 0) : sum;
+  }, 0);
+  const successfulTransactions = result.rows.filter((row) => row.payment_status === 'success').length;
+  const pendingPayouts = totalRevenue;
+
+  res.json({
+    summary: {
+      totalRevenue,
+      pendingPayouts,
+      successfulTransactions,
+      refundRequests: result.rows.filter((row) => row.payment_status === 'refunded').length,
+    },
+    transactions: result.rows.map((row) => ({
+      id: row.id,
+      transactionId: row.payment_reference || row.id,
+      bookingId: row.booking_reference,
+      date: row.paid_at || row.created_at,
+      event: row.event_title,
+      customer: row.customer_name,
+      quantity: Number(row.quantity || 1),
+      amount: Number(row.amount || 0),
+      method: row.provider || 'manual',
+      status: row.payment_status,
+    })),
+  });
+}
+
 export async function listAttendeeWishlist(req, res) {
   const { userId } = req.query;
 
@@ -1231,7 +1290,7 @@ export async function getOrganizerDashboard(req, res) {
 }
 
 export async function getAdminDashboard(_req, res) {
-  const [statsResult, approvalsResult] = await Promise.all([
+  const [statsResult, approvalsResult, paymentsResult] = await Promise.all([
     query(
       `SELECT
          COUNT(*) AS total_users,
@@ -1252,6 +1311,27 @@ export async function getAdminDashboard(_req, res) {
        ORDER BY oa.created_at DESC
        LIMIT 5`
     ),
+    query(
+      `SELECT
+         p.id,
+         p.payment_reference,
+         p.provider,
+         p.amount,
+         p.payment_status,
+         p.paid_at,
+         p.created_at,
+         b.booking_reference,
+         e.title AS event_title,
+         u.full_name AS customer_name,
+         organizer.full_name AS organizer_name
+       FROM payments p
+       JOIN bookings b ON b.id = p.booking_id
+       JOIN events e ON e.id = b.event_id
+       JOIN users u ON u.id = b.user_id
+       LEFT JOIN users organizer ON organizer.id = e.organizer_id
+       ORDER BY COALESCE(p.paid_at, p.created_at) DESC
+       LIMIT 8`
+    ),
   ]);
 
   const statsRow = statsResult.rows[0] || {};
@@ -1269,6 +1349,18 @@ export async function getAdminDashboard(_req, res) {
       email: row.contact_email,
       status: row.status,
       submittedAt: row.created_at,
+    })),
+    recentPayments: paymentsResult.rows.map((row) => ({
+      id: row.id,
+      transactionId: row.payment_reference || row.id,
+      bookingId: row.booking_reference,
+      event: row.event_title,
+      customer: row.customer_name,
+      organizer: row.organizer_name || 'Unassigned',
+      amount: formatCurrencyValue(row.amount),
+      method: row.provider || 'manual',
+      status: row.payment_status,
+      paidAt: row.paid_at || row.created_at,
     })),
   });
 }
@@ -1808,6 +1900,11 @@ export async function processPayment(req, res) {
     const paymentResult = await client.query(
       `INSERT INTO payments (booking_id, provider, amount, payment_status, paid_at, created_at)
        VALUES ($1::uuid, $2, $3, 'success', NOW(), NOW())
+       ON CONFLICT (booking_id) DO UPDATE
+       SET provider = EXCLUDED.provider,
+           amount = EXCLUDED.amount,
+           payment_status = EXCLUDED.payment_status,
+           paid_at = EXCLUDED.paid_at
        RETURNING id, booking_id, amount, payment_status, paid_at`,
       [bookingId, paymentMethod || 'manual', amount]
     );
