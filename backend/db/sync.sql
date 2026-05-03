@@ -42,6 +42,46 @@ ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS banner_url TEXT;
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS base_price NUMERIC(10, 2) NOT NULL DEFAULT 0;
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS capacity INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS tickets_sold INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS refund_policy TEXT;
+
+DO $$
+BEGIN
+  IF to_regclass('public.categories') IS NOT NULL
+     AND to_regclass('public.events') IS NOT NULL THEN
+    WITH ranked_categories AS (
+      SELECT
+        id,
+        FIRST_VALUE(id) OVER (PARTITION BY name ORDER BY created_at ASC, id::TEXT ASC) AS keep_id,
+        ROW_NUMBER() OVER (PARTITION BY name ORDER BY created_at ASC, id::TEXT ASC) AS row_number
+      FROM categories
+    )
+    UPDATE events e
+    SET category_id = ranked_categories.keep_id
+    FROM ranked_categories
+    WHERE e.category_id = ranked_categories.id
+      AND ranked_categories.row_number > 1;
+
+    WITH ranked_categories AS (
+      SELECT
+        id,
+        ROW_NUMBER() OVER (PARTITION BY name ORDER BY created_at ASC, id::TEXT ASC) AS row_number
+      FROM categories
+    )
+    DELETE FROM categories c
+    USING ranked_categories
+    WHERE c.id = ranked_categories.id
+      AND ranked_categories.row_number > 1;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_constraint
+      WHERE conrelid = 'public.categories'::regclass
+        AND conname = 'categories_name_key'
+    ) THEN
+      ALTER TABLE categories ADD CONSTRAINT categories_name_key UNIQUE (name);
+    END IF;
+  END IF;
+END $$;
 
 DO $$
 BEGIN

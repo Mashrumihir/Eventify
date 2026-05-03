@@ -74,6 +74,48 @@ function buildEventFilters({ search, category, organizerId }) {
   };
 }
 
+async function findOrCreateCategory(client, categoryName) {
+  const name = (categoryName || 'General').trim() || 'General';
+  const existing = await client.query(
+    `SELECT id, name
+     FROM categories
+     WHERE LOWER(name) = LOWER($1)
+     ORDER BY created_at ASC
+     LIMIT 1`,
+    [name]
+  );
+
+  if (existing.rowCount > 0) {
+    return existing.rows[0];
+  }
+
+  try {
+    const created = await client.query(
+      `INSERT INTO categories (name)
+       VALUES ($1)
+       RETURNING id, name`,
+      [name]
+    );
+
+    return created.rows[0];
+  } catch (error) {
+    if (error.code !== '23505') {
+      throw error;
+    }
+
+    const existingAfterConflict = await client.query(
+      `SELECT id, name
+       FROM categories
+       WHERE LOWER(name) = LOWER($1)
+       ORDER BY created_at ASC
+       LIMIT 1`,
+      [name]
+    );
+
+    return existingAfterConflict.rows[0];
+  }
+}
+
 export async function getEventCategories(_req, res) {
   const result = await query('SELECT id, name FROM categories ORDER BY name ASC');
 
@@ -158,92 +200,98 @@ export async function createEvent(req, res) {
     return res.status(400).json({ message: 'Organizer, title, and date are required.' });
   }
 
-  const categoryResult = await query(
-    `INSERT INTO categories (name)
-     VALUES ($1)
-     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-     RETURNING id, name`,
-    [category || 'General']
-  );
-
-  const venueResult = await query(
-    `INSERT INTO venues (organizer_id, name, address, city, state)
-     VALUES ($1, $2, $2, NULL, NULL)
-     RETURNING id`,
-    [organizerId, venue || 'Online']
-  );
-
   const startAt = new Date(`${date}T${time || '00:00'}:00`);
+  const client = await pool.connect();
 
-  const eventResult = await query(
-    `INSERT INTO events (
-       organizer_id,
-       category_id,
-       venue_id,
-       title,
-       description,
-       start_at,
-       status,
-       banner_url,
-       base_price,
-       capacity,
-       refund_policy
-     )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-     RETURNING id`,
-    [
-      organizerId,
-      categoryResult.rows[0].id,
-      venueResult.rows[0].id,
-      title.trim(),
-      description || '',
-      startAt.toISOString(),
-      status,
-      bannerUrl || '',
-      Number(ticketPrice) || 0,
-      Number(quantity) || 0,
-      refundPolicy || '',
-    ]
-  );
+  try {
+    await client.query('BEGIN');
 
-  await query(
-    `INSERT INTO ticket_types (event_id, name, price, quantity, is_early_bird)
-     VALUES ($1, $2, $3, $4, FALSE)`,
-    [eventResult.rows[0].id, 'General Admission', Number(ticketPrice) || 0, Number(quantity) || 0]
-  );
+    const categoryRecord = await findOrCreateCategory(client, category);
+    const venueName = (venue || 'Online').trim() || 'Online';
+    const venueResult = await client.query(
+      `INSERT INTO venues (organizer_id, name, address, city, state)
+       VALUES ($1, $2, $3, NULL, NULL)
+       RETURNING id`,
+      [organizerId, venueName, venueName]
+    );
 
-  const createdEvent = await query(
-    `SELECT
-       e.id,
-       e.organizer_id,
-       e.title,
-       e.description,
-       e.start_at,
-       e.end_at,
-       e.status,
-       e.banner_url,
-       e.base_price,
-       e.capacity,
-       e.tickets_sold,
-       e.refund_policy,
-       c.name AS category_name,
-       v.name AS venue_name,
-       CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
-       0 AS rating,
-       0 AS reviews_count,
-       0 AS revenue,
-       FALSE AS wishlisted
-     FROM events e
-     LEFT JOIN categories c ON c.id = e.category_id
-     LEFT JOIN venues v ON v.id = e.venue_id
-     WHERE e.id = $1`,
-    [eventResult.rows[0].id]
-  );
+    const eventResult = await client.query(
+      `INSERT INTO events (
+         organizer_id,
+         category_id,
+         venue_id,
+         title,
+         description,
+         start_at,
+         status,
+         banner_url,
+         base_price,
+         capacity,
+         refund_policy
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id`,
+      [
+        organizerId,
+        categoryRecord.id,
+        venueResult.rows[0].id,
+        title.trim(),
+        description || '',
+        startAt.toISOString(),
+        status,
+        bannerUrl || '',
+        Number(ticketPrice) || 0,
+        Number(quantity) || 0,
+        refundPolicy || '',
+      ]
+    );
 
-  res.status(201).json({
-    message: 'Event saved successfully.',
-    event: mapEvent(createdEvent.rows[0]),
-  });
+    await client.query(
+      `INSERT INTO ticket_types (event_id, name, price, quantity, is_early_bird)
+       VALUES ($1, $2, $3, $4, FALSE)`,
+      [eventResult.rows[0].id, 'General Admission', Number(ticketPrice) || 0, Number(quantity) || 0]
+    );
+
+    const createdEvent = await client.query(
+      `SELECT
+         e.id,
+         e.organizer_id,
+         e.title,
+         e.description,
+         e.start_at,
+         e.end_at,
+         e.status,
+         e.banner_url,
+         e.base_price,
+         e.capacity,
+         e.tickets_sold,
+         e.refund_policy,
+         c.name AS category_name,
+         v.name AS venue_name,
+         CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
+         0 AS rating,
+         0 AS reviews_count,
+         0 AS revenue,
+         FALSE AS wishlisted
+       FROM events e
+       LEFT JOIN categories c ON c.id = e.category_id
+       LEFT JOIN venues v ON v.id = e.venue_id
+       WHERE e.id = $1`,
+      [eventResult.rows[0].id]
+    );
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      message: 'Event saved successfully.',
+      event: mapEvent(createdEvent.rows[0]),
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function updateEvent(req, res) {
@@ -268,60 +316,80 @@ export async function updateEvent(req, res) {
     return res.status(404).json({ message: 'Event not found.' });
   }
 
-  const categoryResult = await query(
-    `INSERT INTO categories (name)
-     VALUES ($1)
-     ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-     RETURNING id`,
-    [category || 'General']
-  );
-
-  const venueResult = await query(
-    `INSERT INTO venues (organizer_id, name, address, city, state)
-     VALUES ($1, $2, $2, NULL, NULL)
-     RETURNING id`,
-    [current.rows[0].organizer_id, venue || 'Online']
-  );
-
   const startAt = new Date(`${date}T${time || '00:00'}:00`);
+  const client = await pool.connect();
 
-  await query(
-    `UPDATE events
-     SET category_id = $2,
-         venue_id = $3,
-         title = $4,
-         description = $5,
-         start_at = $6,
-         status = $7,
-         banner_url = $8,
-         base_price = $9,
-         capacity = $10,
-         refund_policy = $11,
-         updated_at = NOW()
-     WHERE id = $1`,
-    [
-      id,
-      categoryResult.rows[0].id,
-      venueResult.rows[0].id,
-      title.trim(),
-      description || '',
-      startAt.toISOString(),
-      status,
-      bannerUrl || '',
-      Number(ticketPrice) || 0,
-      Number(quantity) || 0,
-      refundPolicy || '',
-    ]
-  );
+  try {
+    await client.query('BEGIN');
 
-  await query(
-    `UPDATE ticket_types
-     SET price = $2, quantity = $3
-     WHERE event_id = $1`,
-    [id, Number(ticketPrice) || 0, Number(quantity) || 0]
-  );
+    const categoryRecord = await findOrCreateCategory(client, category);
+    const venueName = (venue || 'Online').trim() || 'Online';
+    const venueResult = await client.query(
+      `INSERT INTO venues (organizer_id, name, address, city, state)
+       VALUES ($1, $2, $3, NULL, NULL)
+       RETURNING id`,
+      [current.rows[0].organizer_id, venueName, venueName]
+    );
 
-  res.json({ message: 'Event updated successfully.' });
+    await client.query(
+      `UPDATE events
+       SET category_id = $2,
+           venue_id = $3,
+           title = $4,
+           description = $5,
+           start_at = $6,
+           status = $7,
+           banner_url = $8,
+           base_price = $9,
+           capacity = $10,
+           refund_policy = $11,
+           updated_at = NOW()
+       WHERE id = $1`,
+      [
+        id,
+        categoryRecord.id,
+        venueResult.rows[0].id,
+        title.trim(),
+        description || '',
+        startAt.toISOString(),
+        status,
+        bannerUrl || '',
+        Number(ticketPrice) || 0,
+        Number(quantity) || 0,
+        refundPolicy || '',
+      ]
+    );
+
+    const ticketUpdate = await client.query(
+      `UPDATE ticket_types
+       SET price = $2, quantity = $3
+       WHERE id = (
+         SELECT id
+         FROM ticket_types
+         WHERE event_id = $1
+         ORDER BY created_at ASC
+         LIMIT 1
+       )`,
+      [id, Number(ticketPrice) || 0, Number(quantity) || 0]
+    );
+
+    if (ticketUpdate.rowCount === 0) {
+      await client.query(
+        `INSERT INTO ticket_types (event_id, name, price, quantity, is_early_bird)
+         VALUES ($1, 'General Admission', $2, $3, FALSE)`,
+        [id, Number(ticketPrice) || 0, Number(quantity) || 0]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.json({ message: 'Event updated successfully.' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function deleteEvent(req, res) {

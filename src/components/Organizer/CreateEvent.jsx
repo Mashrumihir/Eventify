@@ -209,7 +209,7 @@ export default function CreateEvent({ currentUser, mode = 'create', eventData = 
 
           <div className="ce-grid-2">
             <div className="ce-form-group">
-              <label htmlFor="ticket-price">Ticket Price (\u20B9)</label>
+              <label htmlFor="ticket-price">Ticket Price </label>
               <input id="ticket-price" name="ticketPrice" type="number" min="0" placeholder="0" value={form.ticketPrice} onChange={handleChange} />
             </div>
 
