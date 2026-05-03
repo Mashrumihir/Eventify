@@ -95,22 +95,22 @@ WHERE o.email = 'organizer1@eventify.com' AND c.slug = 'technology' AND v.name =
 ON CONFLICT (slug) DO NOTHING;
 
 -- Event 2: Music Festival Mumbai
-INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, banner_url, base_price, currency, max_attendees, total_bookings, is_featured, refund_policy, published_at, created_at)
-SELECT gen_random_uuid(), o.id, c.id, v.id, 'Music Festival Mumbai 2025', 'music-festival-mumbai-2025', 'Experience the ultimate music festival with top artists from across India. Food, fun, and unforgettable memories await!', 'Ultimate music festival with top Indian artists', NOW() + INTERVAL '14 days', NOW() + INTERVAL '15 days', 'published', 'https://images.unsplash.com/photo-1459749411177-047381bb3ece?w=1200', 1499.00, 'INR', 2000, 800, TRUE, 'No refunds after ticket purchase.', NOW(), NOW()
+INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, banner_url, base_price, currency, max_attendees, total_bookings, is_featured, is_private, refund_policy, website_url, published_at, created_at)
+SELECT gen_random_uuid(), o.id, c.id, v.id, 'Music Festival Mumbai 2025', 'music-festival-mumbai-2025', 'Experience the ultimate music festival with top artists from across India. Food, fun, and unforgettable memories await!', 'Ultimate music festival with top Indian artists', NOW() + INTERVAL '14 days', NOW() + INTERVAL '15 days', 'published', 'https://images.unsplash.com/photo-1459749411177-047381bb3ece?w=1200', 1499.00, 'INR', 2000, 800, TRUE, FALSE, 'No refunds after ticket purchase.', 'https://musicfestival2025.com', NOW(), NOW()
 FROM users o, categories c, venues v
 WHERE o.email = 'organizer2@eventify.com' AND c.slug = 'music' AND v.name = 'Music Arena Mumbai'
 ON CONFLICT (slug) DO NOTHING;
 
 -- Event 3: Business Leadership Summit
-INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, banner_url, base_price, currency, max_attendees, total_bookings, is_featured, refund_policy, published_at, created_at)
-SELECT gen_random_uuid(), o.id, c.id, v.id, 'Business Leadership Summit', 'business-leadership-summit', 'Learn from top business leaders about leadership, management, and entrepreneurship. Network with industry professionals.', 'Leadership and entrepreneurship networking event', NOW() + INTERVAL '21 days', NOW() + INTERVAL '22 days', 'published', 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200', 2499.00, 'INR', 300, 100, FALSE, '50% refund up to 7 days before event.', NOW(), NOW()
+INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, banner_url, base_price, currency, max_attendees, total_bookings, is_featured, is_private, refund_policy, website_url, published_at, created_at)
+SELECT gen_random_uuid(), o.id, c.id, v.id, 'Business Leadership Summit', 'business-leadership-summit', 'Learn from top business leaders about leadership, management, and entrepreneurship. Network with industry professionals.', 'Leadership and entrepreneurship networking event', NOW() + INTERVAL '21 days', NOW() + INTERVAL '22 days', 'published', 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200', 2499.00, 'INR', 300, 100, FALSE, FALSE, '50% refund up to 7 days before event.', 'https://businesssummit2025.com', NOW(), NOW()
 FROM users o, categories c, venues v
 WHERE o.email = 'organizer3@eventify.com' AND c.slug = 'business' AND v.name = 'Business Hub Delhi'
 ON CONFLICT (slug) DO NOTHING;
 
 -- Event 4: Health & Wellness Workshop (Online)
-INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, event_mode, banner_url, base_price, currency, max_attendees, total_bookings, refund_policy, published_at, created_at)
-SELECT gen_random_uuid(), o.id, c.id, v.id, 'Mindfulness & Wellness Workshop', 'mindfulness-wellness-workshop', 'Join our online wellness workshop to learn mindfulness techniques for a healthier lifestyle.', 'Online wellness and mindfulness workshop', NOW() + INTERVAL '3 days', NOW() + INTERVAL '4 days', 'published', 'online', 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1200', 499.00, 'INR', 200, 50, 'Full refund before event start.', NOW(), NOW()
+INSERT INTO events (id, organizer_id, category_id, venue_id, title, slug, description, short_description, start_at, end_at, status, banner_url, base_price, currency, max_attendees, total_bookings, is_featured, is_private, refund_policy, website_url, published_at, created_at)
+SELECT gen_random_uuid(), o.id, c.id, v.id, 'Mindfulness & Wellness Workshop', 'mindfulness-wellness-workshop', 'Join our online wellness workshop to learn mindfulness techniques for a healthier lifestyle.', 'Online wellness and mindfulness workshop', NOW() + INTERVAL '3 days', NOW() + INTERVAL '4 days', 'published', 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=1200', 499.00, 'INR', 200, 50, FALSE, FALSE, 'Full refund before event start.', 'https://wellness2025.com', NOW(), NOW()
 FROM users o, categories c, venues v
 WHERE o.email = 'organizer1@eventify.com' AND c.slug = 'health-wellness' AND v.name = 'Virtual Event Platform'
 ON CONFLICT (slug) DO NOTHING;
