@@ -1174,7 +1174,7 @@ export async function getOrganizerDashboard(req, res) {
   const [statsResult, activityResult, chartResult] = await Promise.all([
     query(
       `WITH organizer_events AS (
-         SELECT id, capacity
+         SELECT id, max_attendees
          FROM events
          WHERE organizer_id = $1
        ),
@@ -1196,10 +1196,10 @@ export async function getOrganizerDashboard(req, res) {
          COALESCE(SUM(quantity) FILTER (WHERE status IN ('confirmed', 'pending')), 0) AS tickets_sold,
          COALESCE(SUM(amount) FILTER (WHERE status IN ('confirmed', 'pending')), 0) AS total_revenue,
          CASE
-           WHEN COALESCE((SELECT SUM(capacity) FROM organizer_events), 0) = 0 THEN 0
+           WHEN COALESCE((SELECT SUM(max_attendees) FROM organizer_events), 0) = 0 THEN 0
            ELSE ROUND(
              (COALESCE(SUM(quantity) FILTER (WHERE status IN ('confirmed', 'pending')), 0)::NUMERIC
-              / NULLIF((SELECT SUM(capacity) FROM organizer_events), 0)) * 100,
+              / NULLIF((SELECT SUM(max_attendees) FROM organizer_events), 0)) * 100,
              1
            )
          END AS conversion_rate
