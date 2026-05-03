@@ -8,6 +8,8 @@ export default function SetNewPassword({ onSubmit }) {
     password: false,
     confirm: false,
   })
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const togglePasswordVisibility = (field) => {
     setVisiblePasswords((current) => ({
@@ -16,9 +18,24 @@ export default function SetNewPassword({ onSubmit }) {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(password)
+    setError('')
+
+    if (password !== confirm) {
+      setError('New password and confirm password do not match.')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit(password)
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to reset password.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -37,6 +54,8 @@ export default function SetNewPassword({ onSubmit }) {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error ? <p className="auth-error-text">{error}</p> : null}
+
           <div className="auth-input-wrapper">
             <svg className="auth-input-icon lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input 
@@ -77,8 +96,8 @@ export default function SetNewPassword({ onSubmit }) {
             </button>
           </div>
 
-          <button type="submit" className="auth-submit-btn" style={{ marginTop: '8px' }}>
-            Reset Password
+          <button type="submit" className="auth-submit-btn" style={{ marginTop: '8px' }} disabled={isSubmitting}>
+            {isSubmitting ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
       </div>

@@ -20,11 +20,11 @@ export default function EmailVerified({ onContinue, onGoHome }) {
         </div>
 
         <div className="auth-card-header" style={{ marginBottom: '32px' }}>
-          <h2>Email Verified!</h2>
+          <h2>Password Reset Complete!</h2>
           <p style={{ marginTop: '12px' }}>
-            Your email has been successfully<br/>
-            verified. You can now access all features<br/>
-            of Eventify.
+            Your password has been updated.<br/>
+            You can now sign in with your<br/>
+            new password.
           </p>
         </div>
 

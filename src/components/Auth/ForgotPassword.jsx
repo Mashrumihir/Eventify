@@ -4,10 +4,21 @@ import './css/AuthFlows.css'
 
 export default function ForgotPassword({ onBack, onSubmit }) {
   const [email, setEmail] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(email)
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit(email)
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to send OTP right now.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -31,6 +42,8 @@ export default function ForgotPassword({ onBack, onSubmit }) {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {error ? <p className="auth-error-text">{error}</p> : null}
+
           <div className="auth-input-group">
             <label>Email Address</label>
             <div className="auth-input-wrapper">
@@ -45,8 +58,8 @@ export default function ForgotPassword({ onBack, onSubmit }) {
             </div>
           </div>
 
-          <button type="submit" className="auth-submit-btn" style={{ marginTop: '16px' }}>
-            Send Reset Link
+          <button type="submit" className="auth-submit-btn" style={{ marginTop: '16px' }} disabled={isSubmitting}>
+            {isSubmitting ? 'Sending OTP...' : 'Send Email OTP'}
           </button>
         </form>
 

@@ -1,6 +1,13 @@
 import bcrypt from 'bcryptjs';
 import { query } from '../config/db.js';
+import { sendPasswordResetOtp } from '../utils/mailer.js';
 import { toDbRole, toFrontendRole } from '../utils/roles.js';
+
+const PASSWORD_RESET_OTP_MINUTES = 10;
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 function formatUser(user) {
 
@@ -122,5 +129,156 @@ export async function login(req, res) {
   return res.json({
     message: 'Login successful.',
     user: formatUser(user),
+  });
+}
+
+async function findUserForPasswordReset(email) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const result = await query(
+    `SELECT id, full_name, email
+     FROM users
+     WHERE email = $1
+     LIMIT 1`,
+    [normalizedEmail]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function findValidResetToken(userId) {
+  const result = await query(
+    `SELECT id, token
+     FROM password_reset_tokens
+     WHERE user_id = $1
+       AND consumed_at IS NULL
+       AND expires_at > NOW()
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [userId]
+  );
+
+  return result.rows[0] || null;
+}
+
+async function validateResetOtp(email, otp) {
+  if (!email || !otp) {
+    return { error: 'Email and OTP are required.' };
+  }
+
+  const normalizedOtp = String(otp).replace(/\D/g, '');
+
+  if (normalizedOtp.length !== 6) {
+    return { error: 'Enter the 6-digit OTP.' };
+  }
+
+  const user = await findUserForPasswordReset(email);
+
+  if (!user) {
+    return { error: 'Invalid or expired OTP.' };
+  }
+
+  const resetToken = await findValidResetToken(user.id);
+
+  if (!resetToken) {
+    return { error: 'Invalid or expired OTP.' };
+  }
+
+  const isValidOtp = await bcrypt.compare(normalizedOtp, resetToken.token);
+
+  if (!isValidOtp) {
+    return { error: 'Invalid or expired OTP.' };
+  }
+
+  return { user, resetToken };
+}
+
+export async function requestPasswordResetOtp(req, res) {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required.' });
+  }
+
+  const user = await findUserForPasswordReset(email);
+
+  if (!user) {
+    return res.json({
+      message: 'If that email exists, a password reset OTP has been sent.',
+    });
+  }
+
+  const otp = generateOtp();
+  const otpHash = await bcrypt.hash(otp, 10);
+
+  await query(
+    `UPDATE password_reset_tokens
+     SET consumed_at = NOW()
+     WHERE user_id = $1
+       AND consumed_at IS NULL`,
+    [user.id]
+  );
+
+  await query(
+    `INSERT INTO password_reset_tokens (user_id, token, expires_at)
+     VALUES ($1, $2, NOW() + ($3::TEXT || ' minutes')::INTERVAL)`,
+    [user.id, otpHash, PASSWORD_RESET_OTP_MINUTES]
+  );
+
+  await sendPasswordResetOtp({
+    to: user.email,
+    name: user.full_name,
+    otp,
+  });
+
+  return res.json({
+    message: 'Password reset OTP sent to your email.',
+  });
+}
+
+export async function verifyPasswordResetOtp(req, res) {
+  const { email, otp } = req.body;
+  const validation = await validateResetOtp(email, otp);
+
+  if (validation.error) {
+    return res.status(400).json({ message: validation.error });
+  }
+
+  return res.json({
+    message: 'OTP verified successfully.',
+  });
+}
+
+export async function resetPasswordWithOtp(req, res) {
+  const { email, otp, password } = req.body;
+
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+  }
+
+  const validation = await validateResetOtp(email, otp);
+
+  if (validation.error) {
+    return res.status(400).json({ message: validation.error });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  await query(
+    `UPDATE users
+     SET password_hash = $1,
+         updated_at = NOW()
+     WHERE id = $2`,
+    [passwordHash, validation.user.id]
+  );
+
+  await query(
+    `UPDATE password_reset_tokens
+     SET consumed_at = NOW()
+     WHERE id = $1`,
+    [validation.resetToken.id]
+  );
+
+  return res.json({
+    message: 'Password reset successfully.',
   });
 }

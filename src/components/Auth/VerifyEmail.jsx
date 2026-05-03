@@ -2,20 +2,29 @@ import React, { useState } from 'react'
 import './css/Login.css'
 import './css/AuthFlows.css'
 
-export default function VerifyEmail({ onBack, onSubmit }) {
-  // A simplistic state for the 6 boxes.
+export default function VerifyEmail({ email, onBack, onSubmit }) {
   const [code, setCode] = useState(['', '', '', '', '', ''])
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (index, val) => {
-    // Basic update - a real implementation would use refs to auto-focus next boxes.
     const newCode = [...code]
-    newCode[index] = val.slice(-1) // keep only 1 char
+    newCode[index] = val.replace(/\D/g, '').slice(-1)
     setCode(newCode)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    onSubmit(code.join(''))
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit(code.join(''))
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to verify OTP.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -30,10 +39,12 @@ export default function VerifyEmail({ onBack, onSubmit }) {
       <div className="auth-card">
         <div className="auth-card-header">
           <h2>Verify Your Email</h2>
-          <p>We have sent a code to your email</p>
+          <p>We sent a 6-digit OTP to {email || 'your email'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form" style={{ gap: '0' }}>
+          {error ? <p className="auth-error-text" style={{ marginBottom: '16px' }}>{error}</p> : null}
+
           <label style={{ fontSize: '13px', color: 'white', fontWeight: '500' }}>Enter 6-digit code</label>
           
           <div className="otp-container">
@@ -41,6 +52,7 @@ export default function VerifyEmail({ onBack, onSubmit }) {
               <input 
                 key={idx}
                 type="text" 
+                inputMode="numeric"
                 className="otp-box"
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
@@ -50,12 +62,8 @@ export default function VerifyEmail({ onBack, onSubmit }) {
             ))}
           </div>
 
-          <p className="auth-resend-text">
-            Resend code in <span>46s</span>
-          </p>
-
-          <button type="submit" className="auth-submit-btn">
-            Verify Code
+          <button type="submit" className="auth-submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? 'Verifying...' : 'Verify Code'}
           </button>
         </form>
 

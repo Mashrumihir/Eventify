@@ -45,12 +45,18 @@ import Pricing from './components/Home/Pricing/Pricing'
 import PrivacyPolicy from './components/Home/PrivacyPolicy/PrivacyPolicy'
 import TermsOfService from './components/Home/TermsOfService/TermsOfService'
 import { useAuth } from './context/AuthContext'
+import {
+  requestPasswordResetOtp,
+  resetPasswordWithOtp,
+  verifyPasswordResetOtp,
+} from './services/authService'
 
 export default function App() {
   const { user, isAuthenticated, isBootstrapped, login, register, logout, updateUserAvatar } = useAuth()
   const [appMode, setAppMode] = useState(() => getModeFromRole(user?.role))
   const [activePage, setActivePage] = useState('dashboard')
   const [authMode, setAuthMode] = useState('home')
+  const [passwordResetState, setPasswordResetState] = useState({ email: '', otp: '' })
   const [organizerEditorState, setOrganizerEditorState] = useState({ mode: 'create', eventData: null })
   const [navigationState, setNavigationState] = useState({})
   const isOrganizerUser = user?.role === 'organizer' || user?.role === 'organize'
@@ -245,20 +251,46 @@ export default function App() {
     }
 
     if (authMode === 'forgotPassword') {
-      return <ForgotPassword onBack={() => setAuthMode('login')} onSubmit={() => setAuthMode('verifyEmail')} />
+      return (
+        <ForgotPassword
+          onBack={() => setAuthMode('login')}
+          onSubmit={async (email) => {
+            await requestPasswordResetOtp(email)
+            setPasswordResetState({ email, otp: '' })
+            setAuthMode('verifyEmail')
+          }}
+        />
+      )
     }
 
     if (authMode === 'verifyEmail') {
       return (
         <VerifyEmail
           onBack={() => setAuthMode('login')}
-          onSubmit={() => setAuthMode('setNewPassword')}
+          email={passwordResetState.email}
+          onSubmit={async (otp) => {
+            await verifyPasswordResetOtp({ email: passwordResetState.email, otp })
+            setPasswordResetState((current) => ({ ...current, otp }))
+            setAuthMode('setNewPassword')
+          }}
         />
       )
     }
 
     if (authMode === 'setNewPassword') {
-      return <SetNewPassword onSubmit={() => setAuthMode('emailVerified')} />
+      return (
+        <SetNewPassword
+          onSubmit={async (password) => {
+            await resetPasswordWithOtp({
+              email: passwordResetState.email,
+              otp: passwordResetState.otp,
+              password,
+            })
+            setPasswordResetState({ email: '', otp: '' })
+            setAuthMode('emailVerified')
+          }}
+        />
+      )
     }
 
     if (authMode === 'emailVerified') {
