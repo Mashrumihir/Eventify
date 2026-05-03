@@ -20,8 +20,8 @@ function mapUser(row) {
 }
 
 function mapEvent(row) {
-  const sold = Number(row.tickets_sold || 0);
-  const capacity = Number(row.capacity || 0);
+  const sold = Number(row.tickets_sold || row.total_bookings || 0);
+  const capacity = Number(row.max_attendees || 0);
 
   return {
     id: row.id,
@@ -42,7 +42,7 @@ function mapEvent(row) {
     rating: Number(row.rating || 0),
     reviews: Number(row.reviews_count || 0),
     wishlisted: Boolean(row.wishlisted),
-    refundPolicy: row.refund_policy || '',
+    refundPolicy: row.refund_policy || 'No refunds after 24 hours before event',
     progressPercent: capacity > 0 ? Math.round((sold / capacity) * 100) : 0,
   };
 }
@@ -154,9 +154,8 @@ export async function listEvents(req, res) {
        e.status,
        e.banner_url,
        e.base_price,
-       e.capacity,
-       e.tickets_sold,
-       e.refund_policy,
+       e.max_attendees,
+       e.total_bookings AS tickets_sold,
        c.name AS category_name,
        v.name AS venue_name,
        CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
@@ -209,7 +208,7 @@ export async function createEvent(req, res) {
     const categoryRecord = await findOrCreateCategory(client, category);
     const venueName = (venue || 'Online').trim() || 'Online';
     const venueResult = await client.query(
-      `INSERT INTO venues (organizer_id, name, address, city, state)
+      `INSERT INTO venues (managed_by, name, address, city, state)
        VALUES ($1, $2, $3, NULL, NULL)
        RETURNING id`,
       [organizerId, venueName, venueName]
@@ -226,10 +225,9 @@ export async function createEvent(req, res) {
          status,
          banner_url,
          base_price,
-         capacity,
-         refund_policy
+         max_attendees
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id`,
       [
         organizerId,
@@ -242,7 +240,6 @@ export async function createEvent(req, res) {
         bannerUrl || '',
         Number(ticketPrice) || 0,
         Number(quantity) || 0,
-        refundPolicy || '',
       ]
     );
 
@@ -263,9 +260,8 @@ export async function createEvent(req, res) {
          e.status,
          e.banner_url,
          e.base_price,
-         e.capacity,
-         e.tickets_sold,
-         e.refund_policy,
+         e.max_attendees,
+         e.total_bookings AS tickets_sold,
          c.name AS category_name,
          v.name AS venue_name,
          CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
@@ -325,7 +321,7 @@ export async function updateEvent(req, res) {
     const categoryRecord = await findOrCreateCategory(client, category);
     const venueName = (venue || 'Online').trim() || 'Online';
     const venueResult = await client.query(
-      `INSERT INTO venues (organizer_id, name, address, city, state)
+      `INSERT INTO venues (managed_by, name, address, city, state)
        VALUES ($1, $2, $3, NULL, NULL)
        RETURNING id`,
       [current.rows[0].organizer_id, venueName, venueName]
@@ -341,8 +337,7 @@ export async function updateEvent(req, res) {
            status = $7,
            banner_url = $8,
            base_price = $9,
-           capacity = $10,
-           refund_policy = $11,
+           max_attendees = $10,
            updated_at = NOW()
        WHERE id = $1`,
       [
@@ -356,7 +351,6 @@ export async function updateEvent(req, res) {
         bannerUrl || '',
         Number(ticketPrice) || 0,
         Number(quantity) || 0,
-        refundPolicy || '',
       ]
     );
 
@@ -433,9 +427,8 @@ export async function getAttendeeDashboard(req, res) {
          e.status,
          e.banner_url,
          e.base_price,
-         e.capacity,
-         e.tickets_sold,
-         e.refund_policy,
+         e.max_attendees,
+         e.total_bookings AS tickets_sold,
          c.name AS category_name,
          v.name AS venue_name,
          CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,
@@ -472,9 +465,8 @@ export async function getAttendeeDashboard(req, res) {
          e.status,
          e.banner_url,
          e.base_price,
-         e.capacity,
-         e.tickets_sold,
-         e.refund_policy,
+         e.max_attendees,
+         e.total_bookings AS tickets_sold,
          c.name AS category_name,
          v.name AS venue_name,
          CONCAT_WS(', ', NULLIF(v.name, ''), NULLIF(v.city, ''), NULLIF(v.state, '')) AS venue_label,

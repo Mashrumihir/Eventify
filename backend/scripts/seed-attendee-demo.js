@@ -152,7 +152,7 @@ async function getOrCreateVenue(client, organizerId) {
   const existing = await client.query(
     `SELECT id
      FROM venues
-     WHERE organizer_id = $1
+     WHERE managed_by = $1
        AND name = 'Eventify Convention Center'
      LIMIT 1`,
     [organizerId]
@@ -163,7 +163,7 @@ async function getOrCreateVenue(client, organizerId) {
   }
 
   const created = await client.query(
-    `INSERT INTO venues (organizer_id, name, address, city, state, country)
+    `INSERT INTO venues (managed_by, name, address, city, state, country)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
     [organizerId, 'Eventify Convention Center', 'Riverfront Road', 'Ahmedabad', 'Gujarat', 'India']
@@ -199,11 +199,9 @@ async function getOrCreateEvent(client, organizerId, venueId, event) {
        status,
        banner_url,
        base_price,
-       capacity,
-       tickets_sold,
-       refund_policy
+       max_attendees
      )
-     VALUES ($1, $2, $3, $4, $5, NOW() + ($6 || ' days')::interval, NOW() + ($7 || ' days')::interval, 'published', $8, $9, $10, $11, $12)
+     VALUES ($1, $2, $3, $4, $5, NOW() + ($6 || ' days')::interval, NOW() + ($7 || ' days')::interval, 'published', $8, $9, $10)
      RETURNING id`,
     [
       organizerId,
@@ -216,8 +214,6 @@ async function getOrCreateEvent(client, organizerId, venueId, event) {
       event.bannerUrl,
       event.basePrice,
       event.capacity,
-      event.ticketsSold,
-      event.refundPolicy,
     ]
   );
 

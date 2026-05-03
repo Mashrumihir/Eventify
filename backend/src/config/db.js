@@ -1,12 +1,16 @@
-import pg from 'pg';
-import { env } from './env.js';
+/**
+ * Database Configuration (Legacy Export)
+ * Re-exports from database.js for backward compatibility
+ * New code should import from database.js directly
+ */
 
-const { Pool } = pg;
+export { 
+  pool, 
+  query,
+  queryOne,
+  queryValue,
+  transaction,
+  testConnection,
+  closePool 
+} from './database.js';
 
-export const pool = new Pool({
-  connectionString: env.databaseUrl,
-});
-
-export function query(text, params = []) {
-  return pool.query(text, params);
-}
