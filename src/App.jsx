@@ -152,9 +152,9 @@ export default function App() {
       case 'browse':
         return <BrowseEvents currentUser={user} onNavigate={handleNavigate} />
       case 'eventDetails':
-        return <EventDetails onNavigate={handleNavigate} currentUser={user} />
+        return <EventDetails onNavigate={handleNavigate} currentUser={user} eventData={navigationState.eventData} />
       case 'payment':
-        return <Payments currentUser={user} onNavigate={handleNavigate} booking={navigationState.booking} eventData={navigationState.eventData} />
+        return <PaymentSuccess currentUser={user} onNavigate={handleNavigate} />
       case 'paymentSuccess':
         return <PaymentSuccess currentUser={user} onNavigate={handleNavigate} />
       case 'payments':

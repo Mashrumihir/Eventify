@@ -1793,7 +1793,7 @@ export async function getEventById(req, res) {
 export async function processPayment(req, res) {
   const { bookingId, userId, amount, paymentMethod } = req.body;
 
-  if (!bookingId || !userId || !amount) {
+  if (!bookingId || !userId || amount === undefined || amount === null) {
     return res.status(400).json({ message: 'Booking ID, user ID, and amount are required.' });
   }
 

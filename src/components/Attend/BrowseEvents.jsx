@@ -51,7 +51,7 @@ function EventCard({ event, onToggleWishlist, onNavigate }) {
           <span className={`be-price ${event.price === 0 ? 'be-price--free' : ''}`}>
             {event.price === 0 ? 'Free' : `\u20B9${Number(event.price).toLocaleString('en-IN')}`}
           </span>
-          <button className="be-view-btn" id={`view-${event.id}`} onClick={() => onNavigate('eventDetails')}>
+          <button className="be-view-btn" id={`view-${event.id}`} onClick={() => onNavigate('eventDetails', { eventData: event })}>
             View Details
           </button>
         </div>

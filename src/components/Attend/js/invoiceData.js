@@ -48,6 +48,38 @@ export function setActiveInvoiceFromBooking(booking, user) {
   return invoice
 }
 
+export function setActiveInvoiceFromCheckout({ booking, eventData, user }) {
+  const eventDate = eventData?.date ? new Date(eventData.date) : null
+  const ticketLabel = booking?.ticketType
+    ? `${booking.ticketType.charAt(0).toUpperCase()}${booking.ticketType.slice(1)}`
+    : DEFAULT_INVOICE.ticketType
+  const totalPaid = `\u20B9${Number(booking?.totalAmount || 0).toFixed(2)}`
+
+  const invoice = {
+    ...DEFAULT_INVOICE,
+    bookingId: booking?.id || DEFAULT_INVOICE.bookingId,
+    invoiceId: booking?.id ? `INV-${booking.id}` : DEFAULT_INVOICE.invoiceId,
+    eventTitle: eventData?.title || DEFAULT_INVOICE.eventTitle,
+    eventDate: eventDate
+      ? eventDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      : DEFAULT_INVOICE.eventDate,
+    eventTime: eventDate
+      ? eventDate.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })
+      : DEFAULT_INVOICE.eventTime,
+    venue: eventData?.location || eventData?.venue || DEFAULT_INVOICE.venue,
+    ticketType: ticketLabel,
+    quantity: String(booking?.quantity || DEFAULT_INVOICE.quantity),
+    subtotal: totalPaid,
+    totalPaid,
+    billedToName: user?.name || DEFAULT_INVOICE.billedToName,
+    billedToEmail: user?.email || DEFAULT_INVOICE.billedToEmail,
+    image: eventData?.image || DEFAULT_INVOICE.image,
+  }
+
+  window.localStorage.setItem(ACTIVE_INVOICE_STORAGE_KEY, JSON.stringify(invoice))
+  return invoice
+}
+
 export function getActiveInvoice() {
   const storedInvoice = window.localStorage.getItem(ACTIVE_INVOICE_STORAGE_KEY)
 
