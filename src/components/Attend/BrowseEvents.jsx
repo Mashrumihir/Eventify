@@ -10,6 +10,54 @@ function formatDateTime(value) {
   }
 }
 
+const FALLBACK_EVENTS = [
+  {
+    id: 'sample-1',
+    title: 'Mumbai Music Fest',
+    category: 'Music',
+    location: 'Mumbai, India',
+    venue: 'Gateway Gardens',
+    date: '2026-09-12T18:00:00Z',
+    price: 799,
+    ticketsSold: 120,
+    capacity: 250,
+    rating: 4.7,
+    reviews: 58,
+    wishlisted: false,
+    image: 'https://images.unsplash.com/photo-1518977956813-5a6bedf98286?w=1200&q=80',
+  },
+  {
+    id: 'sample-2',
+    title: 'Food & Culture Expo',
+    category: 'Food & Drink',
+    location: 'Ahmedabad, India',
+    venue: 'Riverfront Pavilion',
+    date: '2026-10-05T11:00:00Z',
+    price: 499,
+    ticketsSold: 85,
+    capacity: 160,
+    rating: 4.4,
+    reviews: 32,
+    wishlisted: false,
+    image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=1200&q=80',
+  },
+  {
+    id: 'sample-3',
+    title: 'Tech Startup Summit',
+    category: 'Technology',
+    location: 'Pune, India',
+    venue: 'Innovate Campus',
+    date: '2026-11-20T09:30:00Z',
+    price: 999,
+    ticketsSold: 210,
+    capacity: 300,
+    rating: 4.9,
+    reviews: 102,
+    wishlisted: false,
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&q=80',
+  },
+]
+
 function EventCard({ event, onToggleWishlist, onNavigate }) {
   const soldPercent = Math.min(100, event.progressPercent || 0)
   const { date, time } = formatDateTime(event.date)
@@ -85,8 +133,14 @@ export default function BrowseEvents({ currentUser, onNavigate }) {
           return
         }
 
-        setCategories(['All', ...categoryResponse.categories.map((category) => category.name)])
-        setEvents(eventResponse.events)
+        const loadedEvents = eventResponse.events.length ? eventResponse.events : FALLBACK_EVENTS
+        const eventCategories = Array.from(new Set(loadedEvents.map((event) => event.category)))
+        const categoryNames = categoryResponse.categories.length
+          ? categoryResponse.categories.map((category) => category.name)
+          : eventCategories
+
+        setCategories(['All', ...Array.from(new Set([...categoryNames, ...eventCategories]))])
+        setEvents(loadedEvents)
       } catch (loadError) {
         if (isMounted) {
           setError(loadError.message)
