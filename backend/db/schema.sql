@@ -6,6 +6,10 @@ BEGIN
     CREATE TYPE user_role AS ENUM ('attendee', 'organizer', 'admin');
   END IF;
 
+
+
+  
+
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_status') THEN
     CREATE TYPE account_status AS ENUM ('pending', 'active', 'blocked', 'suspended');
   END IF;
