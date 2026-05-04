@@ -18,9 +18,15 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
   const ticketsSold = Number(eventData?.ticketsSold || 0)
   const capacity = Number(eventData?.capacity || 0)
   const soldPercent = capacity > 0 ? Math.min(100, Math.round((ticketsSold / capacity) * 100)) : 0
+  const isSampleEvent = !eventData?.id || String(eventData.id).startsWith('sample-')
 
   const handleProceedToPayment = async () => {
     setError('')
+
+    if (isSampleEvent) {
+      setError('This is a preview-only event. Add a real event before booking tickets.')
+      return
+    }
 
     if (!currentUser?.id) {
       setError('Please login to proceed with booking.')
@@ -240,11 +246,17 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
             </div>
           )}
 
+          {isSampleEvent && (
+            <div className="ed-warning-message" style={{ color: '#b45309', fontSize: '14px', marginBottom: '12px', textAlign: 'center' }}>
+              Preview events cannot be booked. Create or load a real event to enable payment.
+            </div>
+          )}
+
           <button
             className="ed-btn-primary ed-proceed-btn"
             onClick={handleProceedToPayment}
-            disabled={isProcessing}
-            style={{ opacity: isProcessing ? 0.7 : 1, cursor: isProcessing ? 'not-allowed' : 'pointer' }}
+            disabled={isProcessing || isSampleEvent}
+            style={{ opacity: isProcessing || isSampleEvent ? 0.7 : 1, cursor: isProcessing || isSampleEvent ? 'not-allowed' : 'pointer' }}
           >
             {isProcessing ? 'Processing...' : 'Proceed to Payment'}
           </button>
