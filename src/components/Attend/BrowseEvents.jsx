@@ -10,6 +10,8 @@ function formatDateTime(value) {
   }
 }
 
+const SAMPLE_CATEGORIES = ['Music', 'Food & Drink', 'Technology']
+
 const FALLBACK_EVENTS = [
   {
     id: 'sample-1',
@@ -61,6 +63,7 @@ const FALLBACK_EVENTS = [
 function EventCard({ event, onToggleWishlist, onNavigate }) {
   const soldPercent = Math.min(100, event.progressPercent || 0)
   const { date, time } = formatDateTime(event.date)
+  const isSampleEvent = String(event.id).startsWith('sample-')
 
   return (
     <div className="be-card" id={`be-card-${event.id}`}>
@@ -70,7 +73,9 @@ function EventCard({ event, onToggleWishlist, onNavigate }) {
         <button
           className={`be-card-heart ${event.wishlisted ? 'wishlisted' : ''}`}
           id={`wishlist-${event.id}`}
-          onClick={() => onToggleWishlist(event.id)}
+          onClick={() => !isSampleEvent && onToggleWishlist(event.id)}
+          disabled={isSampleEvent}
+          title={isSampleEvent ? 'Preview events cannot be wishlisted' : event.wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           aria-label={event.wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           ❤
@@ -124,20 +129,32 @@ export default function BrowseEvents({ currentUser, onNavigate }) {
         setIsLoading(true)
         setError('')
 
-        const [categoryResponse, eventResponse] = await Promise.all([
-          fetchEventCategories(),
-          fetchEvents({ userId: currentUser?.id }),
-        ])
+        let categoryResponse = { categories: [] }
+        let eventResponse = { events: [] }
+
+        try {
+          const results = await Promise.all([
+            fetchEventCategories(),
+            fetchEvents({ userId: currentUser?.id }),
+          ])
+          categoryResponse = results[0]
+          eventResponse = results[1]
+        } catch (fetchError) {
+          // If backend is unavailable, fall back to preview-only sample events.
+          if (isMounted) {
+            setError('Backend unavailable. Showing local preview events.')
+          }
+        }
 
         if (!isMounted) {
           return
         }
 
-        const loadedEvents = eventResponse.events.length ? eventResponse.events : FALLBACK_EVENTS
+        const loadedEvents = eventResponse.events?.length ? eventResponse.events : FALLBACK_EVENTS
         const eventCategories = Array.from(new Set(loadedEvents.map((event) => event.category)))
-        const categoryNames = categoryResponse.categories.length
+        const categoryNames = categoryResponse.categories?.length
           ? categoryResponse.categories.map((category) => category.name)
-          : eventCategories
+          : SAMPLE_CATEGORIES
 
         setCategories(['All', ...Array.from(new Set([...categoryNames, ...eventCategories]))])
         setEvents(loadedEvents)
