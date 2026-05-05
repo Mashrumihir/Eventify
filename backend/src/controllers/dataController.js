@@ -1481,7 +1481,7 @@ export async function listOrganizerApplications(req, res) {
 
   if (email) {
     values.push(`%${email.toLowerCase()}%`);
-    filters.push(`LOWER(oa.business_email) LIKE $${values.length}`);
+    filters.push(`LOWER(oa.contact_email) LIKE $${values.length}`);
   }
 
   const result = await query(
@@ -1489,7 +1489,10 @@ export async function listOrganizerApplications(req, res) {
        oa.id,
        oa.user_id,
        oa.organization_name,
-       oa.business_email,
+       oa.contact_email,
+       oa.status,
+       oa.created_at
+     FROM organizer_applications oa
      ${filters.length ? `WHERE ${filters.join(' AND ')}` : ''}
      ORDER BY oa.created_at DESC`,
     values
@@ -1536,10 +1539,16 @@ export async function createOrganizerApplication(req, res) {
        user_id,
        organization_name,
        business_type,
-       business_email,
+       contact_email,
+       status
+     )
+     VALUES ($1, $2, 'Manual', $3, $4)
+     ON CONFLICT (user_id) DO UPDATE SET
+       organization_name = EXCLUDED.organization_name,
+       contact_email = EXCLUDED.contact_email,
        status = EXCLUDED.status,
        updated_at = NOW()
-     RETURNING id, user_id, organization_name, business_email, status, created_at`,
+     RETURNING id, user_id, organization_name, contact_email, status, created_at`,
     [userId, name.trim(), email.trim().toLowerCase(), status.toLowerCase()]
   );
 
@@ -1549,7 +1558,7 @@ export async function createOrganizerApplication(req, res) {
       id: result.rows[0].id,
       userId: result.rows[0].user_id,
       name: result.rows[0].organization_name,
-      email: result.rows[0].business_email,
+      email: result.rows[0].contact_email,
       status: result.rows[0].status,
       submittedAt: result.rows[0].created_at,
     },

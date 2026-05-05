@@ -24,7 +24,16 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
     setError('')
 
     if (isSampleEvent) {
-      setError('This is a preview-only event. Add a real event before booking tickets.')
+      onNavigate('payment', {
+        booking: {
+          id: 'preview-booking',
+          ticketType: selectedTicket,
+          quantity,
+          totalAmount: total,
+          isPreview: true,
+        },
+        eventData,
+      })
       return
     }
 
@@ -248,15 +257,15 @@ export default function EventDetails({ onNavigate, currentUser, eventData }) {
 
           {isSampleEvent && (
             <div className="ed-warning-message" style={{ color: '#b45309', fontSize: '14px', marginBottom: '12px', textAlign: 'center' }}>
-              Preview events cannot be booked. Create or load a real event to enable payment.
+              Preview checkout is available. Use a real event to complete payment.
             </div>
           )}
 
           <button
             className="ed-btn-primary ed-proceed-btn"
             onClick={handleProceedToPayment}
-            disabled={isProcessing || isSampleEvent}
-            style={{ opacity: isProcessing || isSampleEvent ? 0.7 : 1, cursor: isProcessing || isSampleEvent ? 'not-allowed' : 'pointer' }}
+            disabled={isProcessing}
+            style={{ opacity: isProcessing ? 0.7 : 1, cursor: isProcessing ? 'not-allowed' : 'pointer' }}
           >
             {isProcessing ? 'Processing...' : 'Proceed to Payment'}
           </button>

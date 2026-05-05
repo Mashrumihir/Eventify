@@ -48,6 +48,47 @@ ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ N
 ALTER TABLE IF EXISTS venues ADD COLUMN IF NOT EXISTS organizer_id UUID REFERENCES users(id) ON DELETE SET NULL;
 ALTER TABLE IF EXISTS venues ADD COLUMN IF NOT EXISTS address TEXT;
 
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS business_type VARCHAR(120);
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS contact_email VARCHAR(255);
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS contact_phone VARCHAR(20);
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS website_url TEXT;
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS business_address TEXT;
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+ALTER TABLE IF EXISTS organizer_applications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'organizer_applications'
+      AND column_name = 'business_email'
+  ) THEN
+    EXECUTE '
+      UPDATE organizer_applications
+      SET contact_email = business_email
+      WHERE contact_email IS NULL
+    ';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'organizer_applications'
+      AND column_name = 'organization_type'
+  ) THEN
+    EXECUTE '
+      UPDATE organizer_applications
+      SET business_type = organization_type
+      WHERE business_type IS NULL
+    ';
+  END IF;
+END $$;
+
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS banner_url TEXT;
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS base_price NUMERIC(10, 2) NOT NULL DEFAULT 0;
 ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS capacity INTEGER NOT NULL DEFAULT 0;

@@ -64,6 +64,17 @@ export default function CompletePayment({ booking, eventData, currentUser, onNav
   }
 
   const handlePaymentSubmit = async () => {
+    if (booking?.isPreview) {
+      setActiveInvoiceFromCheckout({
+        booking,
+        eventData,
+        user: currentUser,
+      })
+
+      onNavigate?.('paymentSuccess')
+      return
+    }
+
     if (!booking?.id || !currentUser?.id) {
       setError('Booking details are missing. Please start again.')
       return
